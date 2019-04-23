@@ -16,46 +16,46 @@ sizePart = 1024*1024*5
 sizeBuf = 65536
 file = {}
 
-def upload(path):
-	with open(path, 'rb') as f :
-		sha256 = hashlib.sha256()
-		while True: # generando hash del archivo
-			data = f.read(sizeBuf)
-			if not data :
-				break
-			sha256.update(data)
+def upload(path): # Subir archivo al servidor
+    print("buscando archivo...")
+    with open(path, 'rb') as f :
+        sha256 = hashlib.sha256()
+        while True: # generando hash del archivo
+            data = f.read(sizeBuf)
+            if not data :
+                break
+            sha256.update(data)
 
-	file[os.path.basename(path)] = sha256.hexdigest()
-	with open("datos.json", "w") as f:
-		json.dump(file, f)
-    # Submit File in the server
-	name = sha256.hexdigest().encode()                            # File's hash
-	socket.send_multipart([b"create", name])                    # Create File In server
-	ans = socket.recv()
-
-	with open(path, 'rb') as f :
-		while True:
-			data = f.read(sizeBuf)
-			if not data :
-				break
-			socket.send_multipart([name, data])      # Send Data
-            #print(data)
-			ans = socket.recv()       
-                          # The server forever Reply "OK"
-	print(sha256.hexdigest())
-
-with open("datos.json", "a+") as f:
+	#file[os.path.basename(path)] = sha256.hexdigest()
+    with open("info.json", "w") as info:
+        json.dump(file, info)
+        name = file[os.path.basename(path)] # Nombre del archivo
+        print("listo")
+        socket.send_multipart([b"upload", name])                    # Create File In server
+    ans = socket.recv()
+    with open(path, 'rb') as f :
+        while True:
+            data = f.read(sizeBuf)
+            if not data :
+                break
+            socket.send_multipart([name,sha256, data])      # Send Data
+            ans = socket.recv() # The server forever Reply "OK"
+            print(ans)
+            
+with open("info.json", "a+") as f:
     f.seek(0)
     data = f.read(1)
     if not data:
         f.write("{}")
 
-with open("datos.json") as myfile:
+with open("info.json") as myfile:
     file = json.load(myfile)
 
 while True:
-    valor = input().split()
-    print (valor[0])
+    valor = input("Archivo a cargar: ")
+    print(valor)
+    upload(valor).split("\\")
+    
     """
     if len(valor) != 2:
         print("No Esta Bien Escrito")
@@ -65,4 +65,4 @@ while True:
         else :
             print("esta mal escrito")
      """
-    upload(valor[1])
+   
