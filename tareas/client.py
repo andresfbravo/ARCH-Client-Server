@@ -12,7 +12,7 @@ socket = context.socket(zmq.REQ)
 #asociacion de socket a ip del cliente
 s.connect("tcp://127.0.0.1:9999")
 
-sizePart = 1024*1024*5 
+sizePart = 1024*1024*10
 sizeBuf = 65536
 file = {}
 

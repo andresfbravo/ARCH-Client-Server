@@ -1,7 +1,7 @@
 import zmq
 import os
 
-sizePart = 1024*1024*5  #bytes
+sizePart = 1024*1024*10  #bytes
 context = zmq.Context()
 socket = context.socket(zmq.REP) 
 socket.bind("tcp://*:9999")
