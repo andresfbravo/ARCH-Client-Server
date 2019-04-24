@@ -20,6 +20,7 @@ def upload(path): # Subir archivo al servidor
     print("buscando archivo...")
     with open(path, 'rb') as f :
         sha256 = hashlib.sha256()
+        print (sha256)
         while True: # generando hash del archivo
             data = f.read(sizeBuf)
             if not data :
@@ -29,10 +30,12 @@ def upload(path): # Subir archivo al servidor
 	#file[os.path.basename(path)] = sha256.hexdigest()
     with open("info.json", "w") as info:
         json.dump(file, info)
-        name = file[os.path.basename(path)] # Nombre del archivo
+        name = os.path.basename(path).encode() # Nombre del archivo
         print("listo")
-        socket.send_multipart([b"upload", name])                    # Create File In server
+        socket.send_multipart([name])
+        print("enviado")                    # Create File In server
     ans = socket.recv()
+    print(ans)
     with open(path, 'rb') as f :
         while True:
             data = f.read(sizeBuf)
@@ -54,7 +57,8 @@ with open("info.json") as myfile:
 while True:
     valor = input("Archivo a cargar: ")
     print(valor)
-    upload(valor).split("\\")
+    upload(valor)
+    #.split("")
     
     """
     if len(valor) != 2:
