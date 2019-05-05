@@ -16,4 +16,6 @@ while True:
 	op, a1, a2 = s.recv_multipart()#recibe todas las partes y las pone en cada una de las variables
 	print("operacion a realizar: ",op,"numero1: ",a1,"numero2: ",a2)
 
-	if(op=="+")
+	#if(op=="+"):
+	m="algo"
+	s.send(m.encode('utf-8'))
