@@ -14,17 +14,22 @@ ip = 'tcp://*:5002'
 s.bind(ip)
 #Esta funcion recibe las partes enviadas por el cliente y las guarda en el servidor
 def upload(archivo):
-	nombre = archivo[1]
+	nombre = archivo[0]
 	with open(name, ab) as b:
-		b.write(archivo[2])
+		b.write(archivo[1])
 	s.send(b"recibido completo")
-
-print("El servidor de sumas esta corriendo en la ip: ", ip)
+	"""
+	a, b = s.recv_multipart()
+	print("a: ",archivo[0],"b",archivo[1])
+	"""
+print("Servidor de archivos Corriendo en la ip: ", ip)
 #Escucha todo el tiempo
 while True:
 	archivo = s.recv_multipart()#recibe todas las partes y las pone en en la variable archivo
+	
+
 	upload(archivo)
 
 	
-	#m="archivo"
-	#s.send(m.encode('utf-8'))
+	m="archivo"
+	s.send(m.encode('utf-8'))
