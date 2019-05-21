@@ -46,18 +46,7 @@ class Client:
 		    self.upload(self.filename,self.socket, self.ident)
 		elif operation.decode()=='download':
 			self.download(self.filename,self.socket,self.ident)
-			"""
-	def upload(path): # Subir archivo al servidor
-		print("buscando archivo...")
-		with open(path, 'rb') as f :
-			sha256 = hashlib.sha256()
-		print (sha256)
-		while True: # generando hash del archivo
-		data = f.read(sizeBuf)
-		if not data :
-			break
-		sha256.update(data)
-		"""
+	
 	def writeBytes(self,route,info):
 		newName='new-'+route
 		print("Writing file...[{}]".format(newName))
@@ -66,34 +55,44 @@ class Client:
 		    f.write(info)
 		print("Downloaded [{}]".format(newName))
 
-	def upload(self,filename, socket, ID):
-	    with open(self.route.decode()+self.filename.decode(), "rb") as f:
-	        finished = False
-	        part = 0
-	        while not finished:
-	            print("Uploading part {}".format(part+1))
+	def upload(self, filename, socket, ID):
+		
+		with open(self.route.decode()+filename.decode(), 'rb') as f :
+			sha256 = hashlib.sha256()
+			while True:
+				file = f.read(sizeBuf)
+				if not file :
+					break
+				sha256.update(file)
+		print(sha256)
+		nombreArchivo = sha256.hexdigest().encode()
+		
+		with open(self.route.decode()+self.filename.decode(), "rb") as f:
+			finished = False
+			part = 0
+			while not finished:
+				print("Uploading part {}".format(part+1))
 
-	            f.seek(part*sizePart)
-	            bt = f.read(sizePart)
-	            socket.send_multipart([ID, b"upload",filename, bt])
-
-	            #print("Received reply [%s]" % (response))
-	            part+=1
-	            if len(bt) < sizePart:
-	                finished = True
-	        response = socket.recv()
-	        if response.decode()=='OK':
-	            print("Uploaded successfully!")
-	        else:
-	            print("Error!")
+				f.seek(part*sizePart)
+				bt = f.read(sizePart)
+				socket.send_multipart([nombreArchivo,ID, b"upload",filename, bt])
+				#print("Received reply [%s]" % (response))
+				part+=1
+				if len(bt) < sizePart:
+					finished = True
+			response = socket.recv()
+			if response.decode()=='OK':
+				print("Uploaded successfully!")
+			else:
+				print("Error!")
 
 	def download(self,filename,socket,ID):
-	    #print("Download not implemented yet!!!!")
-	    socket.send_multipart([ID,b'download',filename])
-	    response=socket.recv_multipart()
-	    filename,info=response
-	    print("write[{}]".format(filename))
-	    self.writeBytes(filename.decode(),info)
+		#print("Download not implemented yet!!!!")
+		socket.send_multipart([ID,b'download',filename])
+		response=socket.recv_multipart()
+		filename,info=response
+		print("write[{}]".format(filename))
+		self.writeBytes(filename.decode(),info)
 """
 	#file[os.path.basename(path)] = sha256.hexdigest()
     with open("info.json", "w") as info:

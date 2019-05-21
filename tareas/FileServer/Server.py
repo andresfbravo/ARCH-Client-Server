@@ -35,17 +35,18 @@ class Server:
 
 		while True:
 			print("\nListening...\n")
-			ident, message,*rest = socket.recv_multipart()
+			sha256,ident, message,*rest = socket.recv_multipart()
 			print("New request: %s" % message.decode())
 			if message.decode()=='upload':
 				print("Receiving file...")
 				filename,info = rest
-				newName=loc+'/'+ident.decode()+'-'+filename.decode()
-				print("Storing as [{}]".format(newName))
+				#newName=loc+'/'+ident.decode()+'-'+filename.decode()
+				newName = loc+'/'+sha256.decode()
+				#print("Storing as [{}]".format(newName))
 				with open(newName,"wb") as f:
 					f.write(info)
 				socket.send(b"OK")
-				print("Uploaded as [{}]".format(newName))
+				print("Send by [{}]".format(ident))
 			elif message.decode()=="download":
 				print("Operation: Download File...")
 				filename=rest
