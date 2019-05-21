@@ -1,86 +1,120 @@
-#ServerFile
-#Client
-
+"""
+Created on Tue Apr 16 2019
+@author: Esteban Grisales
+"""
 import zmq
+import hashlib
 import json
-import hashlib, os
+import os
+import sys
 
-print("<option> File")
-print("upload ruta de archivo")
-print("\n")
+sizePart = 1024*1024*10
+sizeBuf = 65536
+PORT = "8001"
+file = {}
+
+class Client:
+	def Start(self):
+		os.system("clear")
+		print("\n\n-- Welcome to UltraServer¢2019 --\n")
+		print("Use <id> <function> <filename> to acces interface")
+		print("\t<id> \n\t   Please use the same id for all your consults")
+		print("\t<function> there is 2 options:\n\t   \"upload\"\n\t   \"download\"")
+		print("\t<filename>\n \t\tif it is in the path <ejemplo.jpg>, </home/images/ejemplo.jpg> other way\n")
+
+		if len(sys.argv) != 4:
+			print("\n-- Error --\n")
+			print("\tMust be called with a filename")
+			exit()
+
+		ident= sys.argv[1].encode()
+		operation = sys.argv[2].encode()
+		filename = sys.argv[3].encode()
+
+		context = zmq.Context()
+		socket = context.socket(zmq.REQ)
+		socket.connect("tcp://localhost:"+PORT)
+		print("Establishing connection...")
+
+		if operation.decode()=='upload':
+		    self.upload(filename,socket, ident)
+		elif operation.decode()=='download':
+			self.download(filename,socket,ident)
+			"""
+	def upload(path): # Subir archivo al servidor
+		print("buscando archivo...")
+		with open(path, 'rb') as f :
+			sha256 = hashlib.sha256()
+		print (sha256)
+		while True: # generando hash del archivo
+		data = f.read(sizeBuf)
+		if not data :
+			break
+		sha256.update(data)
+		"""
+	def writeBytes(filename,info):
+		newName='new-'+filename
+		print("Writing file...[{}]".format(newName))
+
+		with open(newName,"wb") as f:
+		    f.write(info)
+		print("Downloaded [{}]".format(newName))
+
+	def upload(filename, socket, ID):
+	    with open(filename, "rb") as f:
+	        finished = False
+	        part = 0
+	        while not finished:
+	            print("Uploading part {}".format(part+1))
+
+	            f.seek(part*partSize)
+	            bt = f.read(partSize)
+	            socket.send_multipart([ID, b"upload",filename, bt])
+
+	            #print("Received reply [%s]" % (response))
+	            part+=1
+	            if len(bt) < partSize:
+	                finished = True
+	        response = socket.recv()
+	        if response.decode()=='OK':
+	            print("Uploaded successfully!")
+	        else:
+	            print("Error!")
+
+	def download(filename,socket,ID):
+	    #print("Download not implemented yet!!!!")
+	    socket.send_multipart([ID,b'download',filename])
+	    response=socket.recv_multipart()
+	    filename,info=response
+	    print("write[{}]".format(filename))
+	    self.writeBytes(filename.decode(),info)
 """
-print("download File")
-print("add hash")
-"""
-#Se crea el contexto
-context = zmq.Context()
+	#file[os.path.basename(path)] = sha256.hexdigest()
+    with open("info.json", "w") as info:
+        json.dump(file, info)
+        name = os.path.basename(path).encode() # Nombre del archivo
 
-#hago la creacion del socket solicitandolo al contexto
-s = context.socket(zmq.REQ)#REQ debido a que va a hacer requerimientos de informacion
-#conecto el socket a la tarjeta de red por defecto
-ip = "tcp://127.0.0.1:5002"
-s.connect(ip)
-tamañoParte = 1024*1024*10  # 10MB
-buff = 65536
-Archivo={}
+    ans = socket.recv()
+    print(ans)
+    with open(path, 'rb') as f :
+        while True:
+            data = f.read(sizeBuf)
+            if not data :
+                break
+            socket.send_multipart([name,sha256, data])      # Send Data
+            ans = socket.recv() # The server forever Reply "OK"
+            print(ans)
 
-def upload(path):
-	#le saco el hash al archivo y lo guardo en este server
-	with open(path, 'rb') as f :
-		sha256 = hashlib.sha256()
-		while True:
-			data = f.read(buff)
-			if not data :
-				break
-			sha256.update(data)	
-	#
-	#print (Archivo[0])
-	Archivo[os.path.basename(path)] = sha256.hexdigest()
-	#print(sha256)
-	
-	with open("datos.json", "w") as f:
-		json.dump(Archivo, f)
-		# Submit File in the server
-	nombreArchivo = sha256.hexdigest().encode()                            # File's hash
-	s.send_multipart([b"create", nombreArchivo])                    # Create File In server
-	ans = s.recv()
-#	print (nombreArchivo.decode())
-	with open(path, 'rb') as f :
-		while True:
-			Archivo = f.read(sizeBuf)
-			if not Archivo :
-				break
-				s.send_multipart([b'upload', nombreArchivo, Archivo])      # Send Data
-				#print(data)
-				ans = socket.recv()                                 # The server forever Reply "OK"
-	print(sha1.hexdigest())
-	
-
-
-"""
-msj=[b"hola",b"claro"]
-s.send_multipart(msj)
-res=s.recv()
-print("el servidor dice que: ",res.decode('utf-8'))
-"""
-
-switcher = { "upload" : upload}
-
-with open("datos.json", "a+") as f:
+with open("info.json", "a+") as f:
     f.seek(0)
     data = f.read(1)
     if not data:
         f.write("{}")
 
-with open("datos.json") as myFiles:
-    Archivo = json.load(myFiles)
+with open("info.json") as myfile:
+    file = json.load(myfile)
+"""
 
-while True:
-    valor = input().split()
-    if len(valor) != 2:
-        print("No Esta Bien Escrito")
-    else:
-        if valor[0] in switcher:
-            switcher[valor[0]](valor[1])
-        else :
-            print("esta mal escrito")
+if __name__ == '__main__':
+	Cliente = Client()
+	Cliente.Start()
