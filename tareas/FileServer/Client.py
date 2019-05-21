@@ -6,7 +6,8 @@ import json
 import hashlib, os
 
 print("<option> File")
-print("upload pathFile")
+print("upload ruta de archivo")
+print("\n")
 """
 print("download File")
 print("add hash")
@@ -35,7 +36,7 @@ def upload(path):
 	#
 	#print (Archivo[0])
 	Archivo[os.path.basename(path)] = sha256.hexdigest()
-	print(sha256)
+	#print(sha256)
 	
 	with open("datos.json", "w") as f:
 		json.dump(Archivo, f)
@@ -43,7 +44,16 @@ def upload(path):
 	nombreArchivo = sha256.hexdigest().encode()                            # File's hash
 	s.send_multipart([b"create", nombreArchivo])                    # Create File In server
 	ans = s.recv()
-	print (nombreArchivo)
+#	print (nombreArchivo.decode())
+	with open(path, 'rb') as f :
+		while True:
+			Archivo = f.read(sizeBuf)
+			if not Archivo :
+				break
+				s.send_multipart([b'upload', nombreArchivo, Archivo])      # Send Data
+				#print(data)
+				ans = socket.recv()                                 # The server forever Reply "OK"
+	print(sha1.hexdigest())
 	
 
 

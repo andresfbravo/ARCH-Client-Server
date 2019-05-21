@@ -14,9 +14,9 @@ ip = 'tcp://*:5002'
 s.bind(ip)
 #Esta funcion recibe las partes enviadas por el cliente y las guarda en el servidor
 def upload(archivo):
-	nombre = archivo[1].decode()
+	nombre = archivo[0].decode()
 	with open(nombre, "ab") as b:
-		b.write(archivo[2])
+		b.write(archivo[1])
 	s.send(b"recibido completo")
 	"""
 	a, b = s.recv_multipart()
