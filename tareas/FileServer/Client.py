@@ -25,6 +25,7 @@ class Client:
 		print("\t<function> there is 2 options:\n\t   \"upload\"\n\t   \"download\"")
 		print("\t<route>\n \t\trute of the file, </home/images> \n")
 		print("\t<filename>\n \t\tthe name of the file <ejemplo.jpg> \n")
+		print("##################################\n \t> ")
 
 		if len(sys.argv) != 5:
 			print("\n-- Error --\n")
@@ -46,7 +47,7 @@ class Client:
 		    self.upload(self.filename,self.socket, self.ident)
 		elif operation.decode()=='download':
 			self.download(self.filename,self.socket,self.ident)
-	
+
 	def writeBytes(self,route,info):
 		newName='new-'+route
 		print("Writing file...[{}]".format(newName))
@@ -56,7 +57,6 @@ class Client:
 		print("Downloaded [{}]".format(newName))
 
 	def upload(self, filename, socket, ID):
-		
 		with open(self.route.decode()+filename.decode(), 'rb') as f :
 			sha256 = hashlib.sha256()
 			while True:
@@ -66,13 +66,12 @@ class Client:
 				sha256.update(file)
 		print(sha256)
 		nombreArchivo = sha256.hexdigest().encode()
-		
+
 		with open(self.route.decode()+self.filename.decode(), "rb") as f:
 			finished = False
 			part = 0
 			while not finished:
 				print("Uploading part {}".format(part+1))
-
 				f.seek(part*sizePart)
 				bt = f.read(sizePart)
 				socket.send_multipart([nombreArchivo,ID, b"upload",filename, bt])
@@ -98,7 +97,6 @@ class Client:
     with open("info.json", "w") as info:
         json.dump(file, info)
         name = os.path.basename(path).encode() # Nombre del archivo
-
     ans = socket.recv()
     print(ans)
     with open(path, 'rb') as f :
@@ -109,13 +107,11 @@ class Client:
             socket.send_multipart([name,sha256, data])      # Send Data
             ans = socket.recv() # The server forever Reply "OK"
             print(ans)
-
 with open("info.json", "a+") as f:
     f.seek(0)
     data = f.read(1)
     if not data:
         f.write("{}")
-
 with open("info.json") as myfile:
     file = json.load(myfile)
 """

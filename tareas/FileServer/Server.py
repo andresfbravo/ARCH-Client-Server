@@ -9,6 +9,7 @@ import os
 
 sizePart = 1024*1024*10  #bytes
 PORT = "8001"
+register={}
 
 class Server:
 	def Start(self):
@@ -35,56 +36,57 @@ class Server:
 
 		while True:
 			print("\nListening...\n")
-			sha256,ident, message,*rest = socket.recv_multipart()
+			sha256, ident, message,*rest = socket.recv_multipart()
+			filename,info = rest
+			register={"id":ident.decode(),"hash":sha256.decode(),"filename":filename.decode()}
+			with open("register.json", "w") as f:
+				json.dump(register, f)
+
 			print("New request: %s" % message.decode())
 			if message.decode()=='upload':
-				print("Receiving file...")
-				filename,info = rest
-				#newName=loc+'/'+ident.decode()+'-'+filename.decode()
-				newName = loc+'/'+sha256.decode()
-				#print("Storing as [{}]".format(newName))
-				with open(newName,"wb") as f:
-					f.write(info)
-				socket.send(b"OK")
-				print("Send by [{}]".format(ident))
+				self.upload(sha256, filename, info, socket, ident, loc)
 			elif message.decode()=="download":
-				print("Operation: Download File...")
-				filename=rest
-				self.download(filename, socket, ident,loc)
+				filename,info=rest
+				print("File: [{}]".format(filename.decode()))
+				self.download(filename, socket, ident, loc)
 			elif message.decode()=="bye":
 				exit()
 			print("Complete!")
+		# fin start
 
-	def download(filename, socket, ID, folder):
-	    print(filename)
-	    fl=filename[0].decode()
-	    newName="./"+folder+'/'+ID.decode()+"-"+fl
-	    print("Downloading [{}]".format(newName))
-	    with open(newName, "rb") as f:
-	        finished = False
-	        part = 0
-	        while not finished:
-	            print("Uploading part {}".format(part+1))
-	            f.seek(part*partSize)
-	            bt = f.read(partSize)
-	            socket.send_multipart([fl.encode(), bt])
-	            part = part + 1
+	def upload(self, sha256, filename, info, socket, ident, loc) :
 
-	            if len(bt) < partSize:
-	                finished = True
+		#newName=loc+'/'+ident.decode()+'-'+filename.decode()
+		newName = loc+'/'+sha256.decode()
+		#print("Storing as [{}]".format(newName))
+		with open(newName,"wb") as f:
+			f.write(info)
+		print("recibed")
+		socket.send(b"OK")
+		print("Send by [{}]".format(ident.decode()))
+		print("File: [{}]".format(filename.decode()))
 
-	        print("Downloaded!!")
+	def download(self, filename, socket, ident, loc):
+		print(filename)
+		fl=filename[0].decode()
+		#newName="./"+folder+'/'+ident.decode()+"-"+fl
+		newName=loc+'/'+sha256.decode()
+		print("Downloading [{}]".format(newName))
+		print("Send by [{}]".format(ident.decode()))
+		with open(newName, "rb") as f:
+			finished = False
+			part = 0
+			while not finished:
+				print("Uploading part {}".format(part+1))
+				f.seek(part*partSize)
+				bt = f.read(partSize)
+				socket.send_multipart([fl.encode(), bt])
+				part = part + 1
+			if len(bt) < partSize:
+				finished = True
 
-	def upload(self,data) :
-		data = socket.recv_multipart()
-		name = data[1]
-		socket.send(b"Recibido")
-		sha256 = data[2]
-		print("Recibiendo archivo: ", name)
-		while True:
-			with open(name, "ab") as f:
-				f.write(data[3])
-			socket.send(b"Recibido")
+		print("Downloaded!!")
+
 
 if __name__ == '__main__':
 	Server = Server()
