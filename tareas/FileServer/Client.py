@@ -14,32 +14,38 @@ PORT = "8001"
 file = {}
 
 class Client:
+	def ___init__(self, ident, operation, route, filename, socket):
+		pass
+
 	def Start(self):
 		os.system("clear")
 		print("\n\n-- Welcome to UltraServer¢2019 --\n")
-		print("Use <id> <function> <filename> to acces interface")
+		print("Use <id> <function> <route> to acces interface")
 		print("\t<id> \n\t   Please use the same id for all your consults")
 		print("\t<function> there is 2 options:\n\t   \"upload\"\n\t   \"download\"")
-		print("\t<filename>\n \t\tif it is in the path <ejemplo.jpg>, </home/images/ejemplo.jpg> other way\n")
+		print("\t<route>\n \t\trute of the file, </home/images> \n")
+		print("\t<filename>\n \t\tthe name of the file <ejemplo.jpg> \n")
 
-		if len(sys.argv) != 4:
+		if len(sys.argv) != 5:
 			print("\n-- Error --\n")
-			print("\tMust be called with a filename")
+			print("\tMust be called with a route")
 			exit()
 
-		ident= sys.argv[1].encode()
-		operation = sys.argv[2].encode()
-		filename = sys.argv[3].encode()
+		self.ident= sys.argv[1].encode()
+		self.operation = sys.argv[2].encode()
+		self.route = sys.argv[3].encode()
+		self.filename=sys.argv[4].encode()
+		#print(filename)
 
 		context = zmq.Context()
-		socket = context.socket(zmq.REQ)
-		socket.connect("tcp://localhost:"+PORT)
+		self.socket = context.socket(zmq.REQ)
+		self.socket.connect("tcp://localhost:"+PORT)
 		print("Establishing connection...")
 
-		if operation.decode()=='upload':
-		    self.upload(filename,socket, ident)
+		if self.operation.decode()=='upload':
+		    self.upload(self.filename,self.socket, self.ident)
 		elif operation.decode()=='download':
-			self.download(filename,socket,ident)
+			self.download(self.filename,self.socket,self.ident)
 			"""
 	def upload(path): # Subir archivo al servidor
 		print("buscando archivo...")
@@ -52,28 +58,28 @@ class Client:
 			break
 		sha256.update(data)
 		"""
-	def writeBytes(filename,info):
-		newName='new-'+filename
+	def writeBytes(self,route,info):
+		newName='new-'+route
 		print("Writing file...[{}]".format(newName))
 
 		with open(newName,"wb") as f:
 		    f.write(info)
 		print("Downloaded [{}]".format(newName))
 
-	def upload(filename, socket, ID):
-	    with open(filename, "rb") as f:
+	def upload(self,filename, socket, ID):
+	    with open(self.route.decode()+self.filename.decode(), "rb") as f:
 	        finished = False
 	        part = 0
 	        while not finished:
 	            print("Uploading part {}".format(part+1))
 
-	            f.seek(part*partSize)
-	            bt = f.read(partSize)
+	            f.seek(part*sizePart)
+	            bt = f.read(sizePart)
 	            socket.send_multipart([ID, b"upload",filename, bt])
 
 	            #print("Received reply [%s]" % (response))
 	            part+=1
-	            if len(bt) < partSize:
+	            if len(bt) < sizePart:
 	                finished = True
 	        response = socket.recv()
 	        if response.decode()=='OK':
@@ -81,7 +87,7 @@ class Client:
 	        else:
 	            print("Error!")
 
-	def download(filename,socket,ID):
+	def download(self,filename,socket,ID):
 	    #print("Download not implemented yet!!!!")
 	    socket.send_multipart([ID,b'download',filename])
 	    response=socket.recv_multipart()
