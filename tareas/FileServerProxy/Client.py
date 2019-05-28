@@ -17,12 +17,12 @@ class Client:
 	def ___init__(self, ident, operation, route, filename, socket):
 		pass
 
-	def crearListaHash(self):
+	def crearListaHash(self,route,filename):
 		sha256 = hashlib.sha256()
 		partes = []
-		with open(path + dir, "rb") as f:
+		with open(self.route.decode()+filename.decode(), 'rb') as f:
 			while True:
-				byte = f.read(65534)
+				byte = f.read(sizeBuf)
 				if not byte:
 					break
 
@@ -32,10 +32,10 @@ class Client:
 
 				sha256.update(byte)
 
-		print("cantidad de trozos que genera el archivo para upload: ",len(partes))
-        return {'hashfile' : sha256.hexdigest(),
-                'trozos' :partes,
-                'name' : dir}
+		#print("El archivo tiene el siguiente numero de partes: ",len(partes))
+        return {'filename' : sha256.hexdigest(),
+                'partes' :partes}
+
 
 	def Start(self):
 		os.system("clear")
