@@ -10,12 +10,32 @@ import sys
 
 sizePart = 1024*1024*10
 sizeBuf = 65536
-PORT = "8001"
+PORT = "8002"
 file = {}
 
 class Client:
 	def ___init__(self, ident, operation, route, filename, socket):
 		pass
+
+	def crearListaHash(self):
+		sha256 = hashlib.sha256()
+		partes = []
+		with open(path + dir, "rb") as f:
+			while True:
+				byte = f.read(65534)
+				if not byte:
+					break
+
+				sha2 = hashlib.sha256()
+				sha2.update(byte)
+				partes.append(sha2.hexdigest())
+
+				sha256.update(byte)
+
+		print("cantidad de trozos que genera el archivo para upload: ",len(partes))
+        return {'hashfile' : sha256.hexdigest(),
+                'trozos' :partes,
+                'name' : dir}
 
 	def Start(self):
 		os.system("clear")
