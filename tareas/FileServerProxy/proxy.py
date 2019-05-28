@@ -10,19 +10,25 @@ register={}
 regisUp={}
 
 class Proxy:
-	def start(self):
+	def Start(self):
 		os.system("clear")
-		print("Proxy of ultraServer Running")
-
+		print("\n-- Welcome to UltraServer¢2019 --\n")
+		print("\tTo initialize the server provide a folder for save the files")
+		print("\t Example: python server.py <location>\n")
+		
+		if len(sys.argv) != 2:
+			print("\n-- Error --\n")
+			print("\tPlease call a folder name")
+			exit()
 		context = zmq.Context()
 		socket = context.socket(zmq.REP)
 		socket.bind("tcp://*:"+PORT)
 		print ("\tProxy is now runnig in port "+PORT)
-
+		
 		while True:
 			print("\nListening...\n")
 			regisUp = socket.recv_json()
-
+			
 			print(register)
 			"""
 			print("New request: %s" % message.decode())

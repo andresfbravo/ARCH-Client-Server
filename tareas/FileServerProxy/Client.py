@@ -17,26 +17,6 @@ class Client:
 	def ___init__(self, ident, operation, route, filename, socket):
 		pass
 
-	def crearListaHash(self,route,filename):
-		sha256 = hashlib.sha256()
-		partes = []
-		with open(self.route.decode()+filename.decode(), 'rb') as f:
-			while True:
-				byte = f.read(sizeBuf)
-				if not byte:
-					break
-
-				sha2 = hashlib.sha256()
-				sha2.update(byte)
-				partes.append(sha2.hexdigest())
-
-				sha256.update(byte)
-
-		#print("El archivo tiene el siguiente numero de partes: ",len(partes))
-        return {'filename' : sha256.hexdigest(),
-                'partes' :partes}
-
-
 	def Start(self):
 		os.system("clear")
 		print("\n\n-- Welcome to UltraServer¢2019 --\n")
@@ -67,6 +47,25 @@ class Client:
 		    self.upload(self.filename,self.socket, self.ident)
 		elif operation.decode()=='download':
 			self.download(self.filename,self.socket,self.ident)
+	
+	def list_part(self,route,filename):
+		sha256 = hashlib.sha256()
+		partes = []
+		with open(self.route.decode()+filename.decode(), 'rb') as f:
+			while True:
+				byte = f.read(sizePart)
+				if not byte:
+					break
+
+				sha2 = hashlib.sha256()
+				sha2.update(byte)
+				partes.append(sha2.hexdigest())
+
+				sha256.update(byte)
+
+		#print("El archivo tiene el siguiente numero de partes: ",len(partes))
+        return {'filename' : sha256.hexdigest(),
+                'partes' :partes}
 
 	def writeBytes(self,route,info):
 		newName='new-'+route
