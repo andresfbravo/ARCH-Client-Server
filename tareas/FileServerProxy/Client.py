@@ -10,7 +10,7 @@ import sys
 
 sizePart = 1024*1024*10
 sizeBuf = 65536
-PORT = "8002"
+PORT = "8001"
 file = {}
 
 class Client:
@@ -63,9 +63,8 @@ class Client:
 
 				sha256.update(byte)
 
-		#print("El archivo tiene el siguiente numero de partes: ",len(partes))
-        return {'filename' : sha256.hexdigest(),
-                'partes' :partes}
+			#print("El archivo tiene el siguiente numero de partes: ",len(partes))
+			return {'filename' : sha256.hexdigest(),'partes' :partes}
 
 	def writeBytes(self,route,info):
 		newName='new-'+route

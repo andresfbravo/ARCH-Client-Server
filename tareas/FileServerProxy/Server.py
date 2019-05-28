@@ -88,6 +88,6 @@ class Server:
 		print("Downloaded!!")
 
 
-  if __name__ == '__main__':
+if __name__ == '__main__':
 	Server = Server()
 	Server.Start()
