@@ -1,13 +1,13 @@
 """
 Created on Tue Apr 16 2019
-@author: Esteban Grisales
+@author: Esteban Grisales && Andres Felipe Bravo
+Arquitectura Cliente Servidor - UTP 
 """
 import zmq
 import hashlib
 import json
 import os
 import sys
-import time
 
 sizePart = 1024*1024*10
 sizeBuf = 65536
@@ -48,7 +48,7 @@ class Client:
 		    self.upload(self.filename,self.socket, self.ident)
 		elif operation.decode()=='download':
 			self.download(self.filename,self.socket,self.ident)
-		print("Operacion completa")
+		print("Operation complete ")
 	
 	def list_part(self,route,filename):
 		sha256 = hashlib.sha256()
@@ -93,18 +93,14 @@ class Client:
 			while not finished:
 				f.seek(part*sizePart)
 				bt = f.read(sizePart)
-				socket.send_multipart([nombreArchivo,ID, b"upload",filename, bt])
 				print("Uploading part {}".format(part+1))
-				#print("Received reply [%s]" % (response))
+				socket.send_multipart([nombreArchivo,ID, b"upload",filename, bt])
 				part+=1
 				if len(bt) < sizePart:
 					finished = True
-				#time.sleep(100)
-				print("Part Uploaded")
 				response = socket.recv()
-				print("I received something!")
-				if response.decode()=="mandelo":
-					print("\tYa dijo")
+				if response.decode()=="OK":
+					print("Parte enviada\n")
 				else:
 					print("Error!")
 

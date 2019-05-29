@@ -1,12 +1,12 @@
 """
 Created on Tue Apr 16 2019
-@author: Esteban Grisales
+@author: Esteban Grisales && Andres Felipe Bravo
+Arquitectura Cliente Servidor - UTP 
 """
 import sys
 import zmq
 import json
 import os
-import time
 
 sizePart = 1024*1024*10  #bytes
 PORT = "8001"
@@ -56,21 +56,16 @@ class Server:
 
 	def upload(self, sha256, filename, info, socket, ident, loc) :
 
-		#newName=loc+'/'+ident.decode()+'-'+filename.decode()
 		newName = loc+'/'+sha256.decode()
 		#print("Storing as [{}]".format(newName))
 		with open(newName,"ab") as f:
 			f.write(info)
-		socket.send(b"mandelo")
-		print("recibed petition")
-		print("Send by [{}]".format(ident.decode()))
-		print("File: [{}]".format(filename.decode()))
-		#time.sleep(5)
+		socket.send(b"OK")  
+		print("[{} send {}]".format(ident.decode(),filename.decode()))
 
 	def download(self, filename, socket, ident, loc):
 		print(filename)
 		fl=filename[0].decode()
-		#newName="./"+folder+'/'+ident.decode()+"-"+fl
 		newName=loc+'/'+sha256.decode()
 		print("Downloading [{}]".format(newName))
 		print("Send by [{}]".format(ident.decode()))
