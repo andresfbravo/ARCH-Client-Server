@@ -48,6 +48,7 @@ class Client:
 		    self.upload(self.filename,self.socket, self.ident)
 		elif operation.decode()=='download':
 			self.download(self.filename,self.socket,self.ident)
+		print("Operacion completa")
 	
 	def list_part(self,route,filename):
 		sha256 = hashlib.sha256()
