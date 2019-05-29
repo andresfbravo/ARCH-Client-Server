@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import sys
+import time
 
 sizePart = 1024*1024*10
 sizeBuf = 65536
@@ -97,9 +98,11 @@ class Client:
 				part+=1
 				if len(bt) < sizePart:
 					finished = True
+				time.sleep(100)
+				print("Part Uploaded")
 			response = socket.recv()
 			if response.decode()=='OK':
-				print("Uploaded successfully!")
+				print("File Uploaded complete successfully!")
 			else:
 				print("Error!")
 

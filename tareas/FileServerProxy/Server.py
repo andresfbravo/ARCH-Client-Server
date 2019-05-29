@@ -6,6 +6,7 @@ import sys
 import zmq
 import json
 import os
+import time
 
 sizePart = 1024*1024*10  #bytes
 PORT = "8001"
@@ -65,7 +66,7 @@ class Server:
 		socket.send(b"OK")
 		print("Send by [{}]".format(ident.decode()))
 		print("File: [{}]".format(filename.decode()))
-
+		time.sleep(5)
 	def download(self, filename, socket, ident, loc):
 		print(filename)
 		fl=filename[0].decode()
