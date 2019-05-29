@@ -37,8 +37,7 @@ class Server:
 
 		while True:
 			print("\nListening...\n")
-			sha256, ident, message,*rest = socket.recv_multipart()
-			filename,info = rest
+			sha256, ident, message,filename, info = socket.recv_multipart()
 			register={"id":ident.decode(),"hash":sha256.decode(),"filename":filename.decode()}
 			with open("register.json", "w") as f:
 				json.dump(register, f)
@@ -60,13 +59,14 @@ class Server:
 		#newName=loc+'/'+ident.decode()+'-'+filename.decode()
 		newName = loc+'/'+sha256.decode()
 		#print("Storing as [{}]".format(newName))
-		with open(newName,"wb") as f:
+		with open(newName,"ab") as f:
 			f.write(info)
-		print("recibed")
-		socket.send(b"OK")
+		socket.send(b"mandelo")
+		print("recibed petition")
 		print("Send by [{}]".format(ident.decode()))
 		print("File: [{}]".format(filename.decode()))
-		time.sleep(5)
+		#time.sleep(5)
+
 	def download(self, filename, socket, ident, loc):
 		print(filename)
 		fl=filename[0].decode()

@@ -91,21 +91,22 @@ class Client:
 			finished = False
 			part = 0
 			while not finished:
-				print("Uploading part {}".format(part+1))
 				f.seek(part*sizePart)
 				bt = f.read(sizePart)
 				socket.send_multipart([nombreArchivo,ID, b"upload",filename, bt])
+				print("Uploading part {}".format(part+1))
 				#print("Received reply [%s]" % (response))
 				part+=1
 				if len(bt) < sizePart:
 					finished = True
-				time.sleep(100)
+				#time.sleep(100)
 				print("Part Uploaded")
-			response = socket.recv()
-			if response.decode()=='OK':
-				print("File Uploaded complete successfully!")
-			else:
-				print("Error!")
+				response = socket.recv()
+				print("I received something!")
+				if response.decode()=="mandelo":
+					print("\tYa dijo")
+				else:
+					print("Error!")
 
 	def download(self,filename,socket,ID):
 		#print("Download not implemented yet!!!!")
