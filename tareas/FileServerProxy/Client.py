@@ -10,13 +10,12 @@ import os
 import sys
 
 sizePart = 1024*1024*10
+ip="192.168.1.10"
 sizeBuf = 65536
-PORT = "8001"
+PORT = "8003"
 file = {}
 
 class Client:
-	def ___init__(self, ident, operation, route, filename, socket):
-		pass
 
 	def Start(self):
 		os.system("clear")
@@ -41,7 +40,7 @@ class Client:
 
 		context = zmq.Context()
 		self.socket = context.socket(zmq.REQ)
-		self.socket.connect("tcp://localhost:"+PORT)
+		self.socket.connect("tcp://"+ip+":"+PORT)
 		print("Establishing connection...")
 
 		if self.operation.decode()=='upload':
