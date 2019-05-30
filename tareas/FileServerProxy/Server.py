@@ -9,8 +9,10 @@ import json
 import os
 
 sizePart = 1024*1024*10  #bytes
-PORT_SERVERS = "8002"
-PORT_CLIENTS = "8003"
+partes = 1000
+IP_PROXY = "192.168.1.12"
+PORT_PROXY = "8002"
+#PORT_CLIENTS = "8003"
 register={}
 
 class Server:
@@ -18,12 +20,24 @@ class Server:
 		os.system("clear")
 		print("\n-- Welcome to UltraServer¢2019 --\n")
 		print("\tTo initialize the server provide a folder for save the files")
-		print("\t Example: python server.py <location>\n")
+		print("\t Example: python server.py <location> <IP> <PORT>\n")
 
-		if len(sys.argv) != 2:
+		if len(sys.argv) != 4:
 			print("\n-- Error --\n")
 			print("\tPlease call a folder name")
 			exit()
+
+		self.PORT_SERVER=sys.argv[3]
+		#if os.path.isdir('./'+PORT) == False:
+			#print("This route doesn't exist ")
+			#print("Making new directory /{}".format(loc))
+			#os.mkdir('./'+loc)
+
+		self.IP_SERVER=sys.argv[2]
+		#if os.path.isdir('./'+IP) == False:
+		#print("This route doesn't exist ")
+		#print("Making new directory /{}".format(IP))
+			#os.mkdir('./'+PORT)
 
 		loc=sys.argv[1]
 		if os.path.isdir('./'+loc) == False:
@@ -33,8 +47,10 @@ class Server:
 
 		context = zmq.Context()
 		socket = context.socket(zmq.REP)
-		socket.bind("tcp://*:"+PORT)
-		print ("\nServer is now runnig in port "+PORT)
+		socket.bind("tcp://*:"+self.PORT_SERVER)
+		print ("\nServer is now runnig in port "+self.PORT_SERVER)
+
+		Server.connectToProxy()	
 
 		while True:
 			print("\nListening...\n")
@@ -54,6 +70,19 @@ class Server:
 				exit()
 			print("Complete!")
 		# fin start
+
+	def connectToProxy(self):
+		contextP = zmq.Context()
+		socketP = contextP.socket(zmq.REQ)
+		#a = input()
+		PROXY = "tcp://" + IP_PROXY + ":" + PORT_PROXY
+		socketP.connect(PROXY)
+		socketP.send_multipart([self.IP_SERVER.encode(),self.PORT_SERVER.encode()])
+		response = socketP.recv()
+		if response.decode()=="OK":
+			print ("\nServer is connected with Proxy by the port "+PORT_PROXY)
+		else:
+			print("Error!")
 
 	def upload(self, sha256, filename, info, socket, ident, loc) :
 
@@ -87,3 +116,4 @@ class Server:
 if __name__ == '__main__':
 	Server = Server()
 	Server.Start()
+	#Server.connectToProxy()
