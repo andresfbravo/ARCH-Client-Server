@@ -77,7 +77,7 @@ class Server:
 		#a = input()
 		PROXY = "tcp://" + IP_PROXY + ":" + PORT_PROXY
 		socketP.connect(PROXY)
-		socketP.send_multipart([self.IP_SERVER.encode(),self.PORT_SERVER.encode()])
+		socketP.send_multipart([self.IP_SERVER.encode(),self.PORT_SERVER.encode(),partes])
 		response = socketP.recv()
 		print(response.decode())
 		if response.decode()=="OK":
@@ -85,12 +85,16 @@ class Server:
 		else:
 			print("Error!")
 
+	def getCapacity(self):
+		return partes
+
 	def upload(self, sha256, filename, info, socket, ident, loc) :
 
 		newName = loc+'/'+sha256.decode()
 		#print("Storing as [{}]".format(newName))
 		with open(newName,"ab") as f:
 			f.write(info)
+			partes=partes-1
 		socket.send(b"OK")  
 		print("[{} send {}]".format(ident.decode(),filename.decode()))
 
