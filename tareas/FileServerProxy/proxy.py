@@ -39,7 +39,7 @@ class Proxy:
 			print("Conecting server...\n")
 			servers["ip"].append(ip.decode())
 			servers["port"].append(port.decode())
-			socket.send(b"OK")  
+			self.socket.send(b"OK")  
 			print("New server connected: " + ip.decode() +":"+port.decode())
 			print(servers)
 
