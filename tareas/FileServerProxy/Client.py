@@ -100,7 +100,7 @@ class Client:
 					finished = True
 				response = socket.recv()
 				if response.decode()=="OK":
-					print("Parte enviada\n")
+					print("Part send succesfully\n")
 				else:
 					print("Error!")
 

@@ -9,7 +9,8 @@ import json
 import os
 
 sizePart = 1024*1024*10  #bytes
-PORT = "8001"
+PORT_SERVERS = "8002"
+PORT_CLIENTS = "8003"
 register={}
 
 class Server:
@@ -39,7 +40,7 @@ class Server:
 			print("\nListening...\n")
 			sha256, ident, message,filename, info = socket.recv_multipart()
 			register={"id":ident.decode(),"hash":sha256.decode(),"filename":filename.decode()}
-			with open("register.json", "w") as f:
+			with open("register.json", "a") as f:
 				json.dump(register, f)
 
 			print("New request: %s" % message.decode())
@@ -82,7 +83,6 @@ class Server:
 				finished = True
 
 		print("Downloaded!!")
-
 
 if __name__ == '__main__':
 	Server = Server()
