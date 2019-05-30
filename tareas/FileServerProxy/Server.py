@@ -49,9 +49,9 @@ class Server:
 		socket = context.socket(zmq.REP)
 		socket.bind("tcp://*:"+self.PORT_SERVER)
 		print ("\nServer is now runnig in port "+self.PORT_SERVER)
-
+		print("ya casi")
 		Server.connectToProxy()	
-
+		print("ehhh")
 		while True:
 			print("\nListening...\n")
 			sha256, ident, message,filename, info = socket.recv_multipart()
@@ -79,6 +79,7 @@ class Server:
 		socketP.connect(PROXY)
 		socketP.send_multipart([self.IP_SERVER.encode(),self.PORT_SERVER.encode()])
 		response = socketP.recv()
+		print(response.decode())
 		if response.decode()=="OK":
 			print ("\nServer is connected with Proxy by the port "+PORT_PROXY)
 		else:
