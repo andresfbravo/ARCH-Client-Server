@@ -1,5 +1,5 @@
 """
-Created on Tue Apr 16 2019
+Created on Tue May 09 2019
 @author: Esteban Grisales && Andres Felipe Bravo
 Arquitectura Cliente Servidor - UTP 
 """
@@ -10,13 +10,11 @@ import os
 import sys
 
 sizePart = 1024*1024*10
-ip="192.168.1.10"
+ip="localhost"
 sizeBuf = 65536
-PORT = "8003"
-file = {}
+PORT = "8002"
 
 class Client:
-
 	def Start(self):
 		os.system("clear")
 		print("\n\n-- Welcome to UltraServer¢2019 --\n")
@@ -25,34 +23,34 @@ class Client:
 		print("\t<function> there is 2 options:\n\t   \"upload\"\n\t   \"download\"")
 		print("\t<route>\n \t\trute of the file, </home/images> \n")
 		print("\t<filename>\n \t\tthe name of the file <ejemplo.jpg> \n")
-		print("##################################\n \t> ")
+		print("##################################\n")
 
 		if len(sys.argv) != 5:
 			print("\n-- Error --\n")
-			print("\tMust be called with a route")
+			print("\tInvalid sintax")
 			exit()
 
 		self.ident= sys.argv[1].encode()
 		self.operation = sys.argv[2].encode()
 		self.route = sys.argv[3].encode()
 		self.filename=sys.argv[4].encode()
-		#print(filename)
 
 		context = zmq.Context()
-		self.socket = context.socket(zmq.REQ)
-		self.socket.connect("tcp://"+ip+":"+PORT)
-		print("Establishing connection...")
+		self.socket_proxy = context.socket(zmq.REQ)
+		self.socket_proxy.connect("tcp://"+ip+":"+PORT)
+		print("Establishing connection to proxy")
+
+		self.proxy_negotiations()
 
 		if self.operation.decode()=='upload':
-		    self.upload(self.filename,self.socket, self.ident)
+		    self.upload(self.filename,self.socket_servers, self.ident)
 		elif operation.decode()=='download':
-			self.download(self.filename,self.socket,self.ident)
+			self.download(self.filename,self.socket_proxy,self.ident)
 		print("Operation complete ")
 	
-	def list_part(self,route,filename):
-		sha256 = hashlib.sha256()
-		partes = []
-		with open(self.route.decode()+filename.decode(), 'rb') as f:
+	def proxy_negotiations(self):
+		parts = []
+		with open(self.route.decode()+self.filename.decode(), 'rb') as f:
 			while True:
 				byte = f.read(sizePart)
 				if not byte:
@@ -60,12 +58,20 @@ class Client:
 
 				sha2 = hashlib.sha256()
 				sha2.update(byte)
-				partes.append(sha2.hexdigest())
+				parts.append(sha2.hexdigest())
 
-				sha256.update(byte)
+		print("El archivo tiene el siguiente numero de partes: ",len(parts))
 
-			#print("El archivo tiene el siguiente numero de partes: ",len(partes))
-			return {'filename' : sha256.hexdigest(),'partes' :partes}
+		self.socket_proxy.send_multipart([b"client",self.get_hash(), self.operation, parts])
+		response = socket_proxy.recv()
+		if response.decode()=="OK":
+			print("Proxy conect succesfully\n")
+		else:
+			print("Error conecting proxy!")
+
+		#self.socket_servers.connect("tcp://"+ip+":"+PORT)
+		print("Preparing to send parts")
+		#return {"filename" : sha256.hexdigest(),"parts" :parts}
 
 	def writeBytes(self,route,info):
 		newName='new-'+route
@@ -75,17 +81,18 @@ class Client:
 		    f.write(info)
 		print("Downloaded [{}]".format(newName))
 
-	def upload(self, filename, socket, ID):
-		with open(self.route.decode()+filename.decode(), 'rb') as f :
+	def get_hash(self):
+		with open(self.route.decode()+self.filename.decode(), 'rb') as f :
 			sha256 = hashlib.sha256()
 			while True:
 				file = f.read(sizeBuf)
 				if not file :
 					break
 				sha256.update(file)
-		print(sha256)
-		nombreArchivo = sha256.hexdigest().encode()
+		hashfile = sha256.hexdigest().encode()
+		return hashfile
 
+	def upload(self, socket, ID):
 		with open(self.route.decode()+self.filename.decode(), "rb") as f:
 			finished = False
 			part = 0
@@ -93,7 +100,7 @@ class Client:
 				f.seek(part*sizePart)
 				bt = f.read(sizePart)
 				print("Uploading part {}".format(part+1))
-				socket.send_multipart([nombreArchivo,ID, b"upload",filename, bt])
+				socket.send_multipart([self.get_hash(),ID, b"upload",self.filename, bt])
 				part+=1
 				if len(bt) < sizePart:
 					finished = True
@@ -110,29 +117,6 @@ class Client:
 		filename,info=response
 		print("write[{}]".format(filename))
 		self.writeBytes(filename.decode(),info)
-"""
-	#file[os.path.basename(path)] = sha256.hexdigest()
-    with open("info.json", "w") as info:
-        json.dump(file, info)
-        name = os.path.basename(path).encode() # Nombre del archivo
-    ans = socket.recv()
-    print(ans)
-    with open(path, 'rb') as f :
-        while True:
-            data = f.read(sizeBuf)
-            if not data :
-                break
-            socket.send_multipart([name,sha256, data])      # Send Data
-            ans = socket.recv() # The server forever Reply "OK"
-            print(ans)
-with open("info.json", "a+") as f:
-    f.seek(0)
-    data = f.read(1)
-    if not data:
-        f.write("{}")
-with open("info.json") as myfile:
-    file = json.load(myfile)
-"""
 
 if __name__ == '__main__':
 	Cliente = Client()

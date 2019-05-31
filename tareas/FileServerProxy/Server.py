@@ -9,8 +9,8 @@ import json
 import os
 
 sizePart = 1024*1024*10  #bytes
-partes = 1000
-IP_PROXY = "192.168.1.12"
+parts = 1000
+IP_PROXY = "localhost"
 PORT_PROXY = "8002"
 #PORT_CLIENTS = "8003"
 register={}
@@ -24,22 +24,13 @@ class Server:
 
 		if len(sys.argv) != 4:
 			print("\n-- Error --\n")
-			print("\tPlease call a folder name")
+			print("\tInvalid sintax")
 			exit()
 
-		self.PORT_SERVER=sys.argv[3]
-		#if os.path.isdir('./'+PORT) == False:
-			#print("This route doesn't exist ")
-			#print("Making new directory /{}".format(loc))
-			#os.mkdir('./'+loc)
-
+		self.PORT_SERVER=sys.argv[3]	
 		self.IP_SERVER=sys.argv[2]
-		#if os.path.isdir('./'+IP) == False:
-		#print("This route doesn't exist ")
-		#print("Making new directory /{}".format(IP))
-			#os.mkdir('./'+PORT)
-
 		loc=sys.argv[1]
+
 		if os.path.isdir('./'+loc) == False:
 			print("This route doesn't exist ")
 			print("Making new directory /{}".format(loc))
@@ -49,11 +40,11 @@ class Server:
 		socket = context.socket(zmq.REP)
 		socket.bind("tcp://*:"+self.PORT_SERVER)
 		print ("\nServer is now runnig in port "+self.PORT_SERVER)
-		print("ya casi")
 		Server.connectToProxy()	
-		print("ehhh")
+		print("Proxy connected succesfully!")
+
 		while True:
-			print("\nListening...\n")
+			print("\nListening clients...\n")
 			sha256, ident, message,filename, info = socket.recv_multipart()
 			register={"id":ident.decode(),"hash":sha256.decode(),"filename":filename.decode()}
 			with open("register.json", "a") as f:
@@ -77,7 +68,7 @@ class Server:
 		#a = input()
 		PROXY = "tcp://" + IP_PROXY + ":" + PORT_PROXY
 		socketP.connect(PROXY)
-		socketP.send_multipart([self.IP_SERVER.encode(),self.PORT_SERVER.encode(),partes])
+		socketP.send_multipart([b"server",self.IP_SERVER.encode(),self.PORT_SERVER.encode(),str(parts).encode()])
 		response = socketP.recv()
 		print(response.decode())
 		if response.decode()=="OK":
@@ -86,7 +77,7 @@ class Server:
 			print("Error!")
 
 	def getCapacity(self):
-		return partes
+		return parts
 
 	def upload(self, sha256, filename, info, socket, ident, loc) :
 
@@ -94,7 +85,7 @@ class Server:
 		#print("Storing as [{}]".format(newName))
 		with open(newName,"ab") as f:
 			f.write(info)
-			partes=partes-1
+			parts=parts-1
 		socket.send(b"OK")  
 		print("[{} send {}]".format(ident.decode(),filename.decode()))
 
