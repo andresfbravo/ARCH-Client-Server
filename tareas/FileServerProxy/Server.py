@@ -9,58 +9,53 @@ import json
 import os
 
 sizePart = 1024*1024*10  #bytes
-parts = 1000
+f_space = 1000
 IP_PROXY = "localhost"
 PORT_PROXY = "8002"
 #PORT_CLIENTS = "8003"
-register={}
+
 
 class Server:
 	def Start(self):
 		os.system("clear")
-		print("\n-- Welcome to UltraServer¢2019 --\n")
-		print("\tTo initialize the server provide a folder for save the files")
-		print("\t Example: python server.py <location> <IP> <PORT>\n")
+		print("-- Welcome to UltraServer¢2019 --\n")
+		print("SYNTAX: python3 Server.py <folder> <ip> <port> <register> \n")
+		print(" <folder>\t name of folder to save files (will be create if doesn't exist)")
+		print(" <ip> <port>\t ip and port of the local machine")
+		print(" <register>\t register of contained files (will be create if doesn't exist)\n")
+		print(" Example: python server.py main_folder 192.168.0.2 8001 register.json \n")
 
-		if len(sys.argv) != 4:
+		if len(sys.argv) != 5:
 			print("\n-- Error --\n")
 			print("\tInvalid sintax")
 			exit()
 
+		self.register={}
+		self.reg_file=sys.argv[4]	
 		self.PORT_SERVER=sys.argv[3]	
 		self.IP_SERVER=sys.argv[2]
 		loc=sys.argv[1]
 
 		if os.path.isdir('./'+loc) == False:
-			print("This route doesn't exist ")
-			print("Making new directory /{}".format(loc))
+			print("\nThis folder doesn't exist ")
+			print("Creating the new directory /{}".format(loc))
 			os.mkdir('./'+loc)
+
+		if os.path.isfile('./'+self.reg_file) == False:
+			print("\nThis register file doesn't exist ")
+			print("Creating the new register /{}".format(self.reg_file))
+			with open(self.reg_file,"x") as f: 	
+				json.dump(self.register,f)
+		else:	
+			with open(self.reg_file) as k: 
+				self.register=json.load(k)
 
 		context = zmq.Context()
 		socket = context.socket(zmq.REP)
 		socket.bind("tcp://*:"+self.PORT_SERVER)
 		print ("\nServer is now runnig in port "+self.PORT_SERVER)
 		Server.connectToProxy()	
-		print("Proxy connected succesfully!")
-
-		while True:
-			print("\nListening clients...\n")
-			sha256, ident, message,filename, info = socket.recv_multipart()
-			register={"id":ident.decode(),"hash":sha256.decode(),"filename":filename.decode()}
-			with open("register.json", "a") as f:
-				json.dump(register, f)
-
-			print("New request: %s" % message.decode())
-			if message.decode()=='upload':
-				self.upload(sha256, filename, info, socket, ident, loc)
-			elif message.decode()=="download":
-				filename,info=rest
-				print("File: [{}]".format(filename.decode()))
-				self.download(filename, socket, ident, loc)
-			elif message.decode()=="bye":
-				exit()
-			print("Complete!")
-		# fin start
+		Server.listen_clients(socket)		
 
 	def connectToProxy(self):
 		contextP = zmq.Context()
@@ -68,24 +63,52 @@ class Server:
 		#a = input()
 		PROXY = "tcp://" + IP_PROXY + ":" + PORT_PROXY
 		socketP.connect(PROXY)
-		socketP.send_multipart([b"server",self.IP_SERVER.encode(),self.PORT_SERVER.encode(),str(parts).encode()])
+		socketP.send_multipart([b"server",self.IP_SERVER.encode(),self.PORT_SERVER.encode(),str(f_space).encode()])
+		req = socketP.recv()
+		if req.decode()=="NEXT":
+			socketP.send_json(self.register)
+
 		response = socketP.recv()
-		print(response.decode())
 		if response.decode()=="OK":
-			print ("\nServer is connected with Proxy by the port "+PORT_PROXY)
+			print ("\nServer is now connected with Proxy by the port "+PORT_PROXY)
 		else:
 			print("Error!")
 
+	def listen_clients(self, socket):
+		while True:
+			print("\nListening clients...\n")
+			sha256, ident, operation,filename, file = socket.recv_multipart()
+			
+			print("New request: %s" % operation.decode())
+			
+			if (sha256.decode() in self.register):
+				print("The file already exists") 
+				socket.send(b"repeated")  
+			else:
+				self.register.update({sha256.decode():{"data":[ident.decode(),filename.decode()],"parts":[]}})
+			
+				with open(self.reg_file, "w") as f:
+					json.dump(self.register, f)
+
+			if operation.decode()=="upload":
+				self.upload(sha256, filename, file, socket, ident, loc)
+			elif operation.decode()=="download":
+				filename,file=rest
+				print("File: [{}]".format(filename.decode()))
+				self.download(filename, socket, ident, loc)
+			elif operation.decode()=="bye":
+				exit()
+			print("Operation complete successfully!")
+
 	def getCapacity(self):
-		return parts
+		return f_space
 
-	def upload(self, sha256, filename, info, socket, ident, loc) :
-
+	def upload(self, sha256, filename, file, socket, ident, loc) :
 		newName = loc+'/'+sha256.decode()
 		#print("Storing as [{}]".format(newName))
 		with open(newName,"ab") as f:
-			f.write(info)
-			parts=parts-1
+			f.write(file)
+			f_space=f_space-1
 		socket.send(b"OK")  
 		print("[{} send {}]".format(ident.decode(),filename.decode()))
 
