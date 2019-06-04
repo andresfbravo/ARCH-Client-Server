@@ -1,0 +1,5 @@
+***download***
+
+cliente (sha principal)  -> proxy
+proxy (diccionario{[partes],[direcciones]}) -> cliente
+cliente (download, parte) -> server (parte))

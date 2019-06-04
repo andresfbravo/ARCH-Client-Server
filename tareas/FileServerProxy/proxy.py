@@ -6,12 +6,14 @@ import os
 sizePart = 1024*1024*10  #bytes
 PORT_SERVERS = "8002"
 register_server={}
+"""
+{ip+":"+port:espacio}}
+"""
 main_register={}
 """
 {
 	sha256.decode():
 		{
-		"data":[ident.decode(),filename.decode()],
 		"parts":[] 	#partes del archivo
 		"loc":[]	#ip donde esta cada una
 		}
@@ -44,22 +46,25 @@ class Proxy:
 				print("Welcome server: ")
 				ip,port,parts = rest
 				print(ip.decode(),port.decode(),parts.decode())
+				"""
 				self.socket.send(b"NEXT") 
 				json_server = self.socket.recv_json()
 				#register_server=json.load(json_server)
 				#print(json_server)
-				
+				"""
 				#register_server.update({[ip,port]:[hash_file,hash_parts]})
 
 				self.socket.send(b"OK")
 
 			elif who.decode()=="client":
 				print("welcome client: ")
-				operation=rest
+				operation=rest[0]
 				self.socket.send(b"OK")
 				if operation.decode()=="upload":
 					parts=self.socket.recv_json()
+					print(parts)
 				#elif operation.decode()=="download":
+				#	for in range
 
 			print("Operation complete successfully!")
 

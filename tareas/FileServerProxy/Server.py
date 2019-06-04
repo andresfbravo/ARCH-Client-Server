@@ -13,8 +13,11 @@ f_space = 1000
 IP_PROXY = "localhost"
 PORT_PROXY = "8002"
 #PORT_CLIENTS = "8003"
-
-
+"""{sha256.decode():
+	{"data":[ident.decode(),filename.decode()],
+	"parts":[]
+	}}
+"""
 class Server:
 	def Start(self):
 		os.system("clear")
@@ -64,10 +67,10 @@ class Server:
 		PROXY = "tcp://" + IP_PROXY + ":" + PORT_PROXY
 		socketP.connect(PROXY)
 		socketP.send_multipart([b"server",self.IP_SERVER.encode(),self.PORT_SERVER.encode(),str(f_space).encode()])
-		req = socketP.recv()
+		"""req = socketP.recv()
 		if req.decode()=="NEXT":
 			socketP.send_json(self.register)
-
+		"""
 		response = socketP.recv()
 		if response.decode()=="OK":
 			print ("\nServer is now connected with Proxy by the port "+PORT_PROXY)
