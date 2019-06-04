@@ -1,7 +1,7 @@
 """
 Created on Tue May 09 2019
 @author: Esteban Grisales && Andres Felipe Bravo
-Arquitectura Cliente Servidor - UTP 
+Arquitectura Cliente Servidor - UTP
 """
 import zmq
 import hashlib
@@ -10,7 +10,7 @@ import os
 import sys
 
 sizePart = 1024*1024*10
-ip="localhost"
+ip="192.168.8.116"
 sizeBuf = 65536
 PORT = "8002"
 
@@ -49,13 +49,13 @@ class Client:
 			print("Error conecting to proxy!")
 
 		if self.operation.decode()=='upload':
-		    self.upload(self.filename,self.socket_servers, self.ident)
+		    self.upload_proxy(self.socket_proxy, self.ident)
+		    #self.upload_server(self.socket_servers, self.ident)
 		elif operation.decode()=='download':
 			self.download(self.filename,self.socket_proxy,self.ident)
 		print("Operation complete ")
-	
 
-	def upload(self, socket, ID):
+	def upload_proxy(self, socket):
 		print("Making file parts for send ...")
 		parts = []
 		with open(self.route.decode()+self.filename.decode(), 'rb') as f:
@@ -69,34 +69,36 @@ class Client:
 
 		print("Parts to send: ",len(parts))
 		print("Preparing to send parts ...")
-		register={self.get_hash():{parts,[]}}
-		register={"id":ident.decode(),"hash":sha256.decode(),"filename":filename.decode()}
-			with open("register.json", "a") as f:
-				json.dump(register, f)
+		register={self.get_hash():{"parts":parts,"loc":[]}}
+		#register={"id":ident.decode(),"hash":sha256.decode(),"filename":filename.decode()}
+		#with open("register.json", "a") as f:
+			#json.dump(register, f)
 
 		#self.socket_servers.connect("tcp://"+ip+":"+PORT)
 		#return {"filename" : sha256.hexdigest(),"parts" :parts}
 
-		with open(self.route.decode()+self.filename.decode(), "rb") as f:
-			finished = False
-			part = 0
-			while not finished:
-				f.seek(part*sizePart)
-				bt = f.read(sizePart)
-				socket.send_multipart([self.get_hash(),ID, b"upload",self.filename, bt])
-				response = socket.recv()
-				if response.decode()=="repeated":
-					print("The file already exists in server \n")
-					finished = True
-					break
-				if len(bt) < sizePart:
-					finished = True
-				print("Uploading part {}".format(part+1))
-				part+=1
-				if response.decode()=="OK":
-					print("Part send succesfully\n")
-				else:
-					print("Error!")
+
+		def upload_server(self):
+			with open(self.route.decode()+self.filename.decode(), "rb") as f:
+				finished = False
+				part = 0
+				while not finished:
+					f.seek(part*sizePart)
+					bt = f.read(sizePart)
+					socket.send_multipart([self.get_hash(),self.ident, b"upload",self.filename, bt])
+					response = socket.recv()
+					if response.decode()=="repeated":
+						print("The file already exists in server \n")
+						finished = True
+						break
+					if len(bt) < sizePart:
+						finished = True
+					print("Uploading part {}".format(part+1))
+					part+=1
+					if response.decode()=="OK":
+						print("Part send succesfully\n")
+					else:
+						print("Error!")
 
 	def download(self,filename,socket,ID):
 		#print("Download not implemented yet!!!!")
