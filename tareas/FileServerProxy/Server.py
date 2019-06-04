@@ -14,7 +14,7 @@ IP_PROXY = "localhost"
 PORT_PROXY = "8002"
 #PORT_CLIENTS = "8003"
 """{sha256.decode():
-	{"data":[ident.decode(),filename.decode()],
+	{"data":[{ident.decode():filename.decode()}],
 	"parts":[]
 	}}
 """
@@ -81,7 +81,7 @@ class Server:
 		while True:
 			print("\nListening clients...\n")
 			sha256, ident, operation,filename, file = socket.recv_multipart()
-			
+			#register.update({sha256.decode})
 			print("New request: %s" % operation.decode())
 			
 			if (sha256.decode() in self.register):
