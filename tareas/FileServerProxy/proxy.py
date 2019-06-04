@@ -77,6 +77,7 @@ class Proxy:
 				#elif operation.decode()=="download":
 				#	for in range
 			print("Operation complete successfully!")
+			print(register_server)
 
 
 	def upload(self,hash_file):
@@ -91,10 +92,13 @@ class Proxy:
 		
 		n=len(self.main_register.get(hash_file.decode()).get('parts'))
 		print("esto es n: "+str(n))
-		a = "192.168.9.1:8000"
+		#a = "192.168.9.1:8000"
 		loc=[]
-		for s in range(0,n):
-			loc.append(a)
+		x=0
+		while x < n:
+			for s in range(0,len(register_server)):
+				loc.append(register_server[s])
+			x=x+len(register_server)
 		loc2=[x.encode() for x in loc]
 		self.socket.send_multipart(loc2)
 

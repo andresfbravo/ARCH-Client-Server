@@ -31,18 +31,18 @@ class Server:
 		if len(sys.argv) != 5:
 			print("\n-- Error --\n")
 			print("\tInvalid sintax")
-			exit()
+			exit()self.
 
 		self.register={}
 		self.reg_file=sys.argv[4]	
 		self.PORT_SERVER=sys.argv[3]	
 		self.IP_SERVER=sys.argv[2]
-		loc=sys.argv[1]
+		self.loc=sys.argv[1]
 
-		if os.path.isdir('./'+loc) == False:
+		if os.path.isdir('./'+self.loc) == False:
 			print("\nThis folder doesn't exist ")
-			print("Creating the new directory /{}".format(loc))
-			os.mkdir('./'+loc)
+			print("Creating the new directory /{}".format(self.loc))
+			os.mkdir('./'+self.loc)
 
 		if os.path.isfile('./'+self.reg_file) == False:
 			print("\nThis register file doesn't exist ")
@@ -94,11 +94,11 @@ class Server:
 					json.dump(self.register, f)
 
 			if operation.decode()=="upload":
-				self.upload(sha256, filename, file, socket, ident, loc)
+				self.upload(sha256, filename, file, socket, ident, self.loc)
 			elif operation.decode()=="download":
 				filename,file=rest
 				print("File: [{}]".format(filename.decode()))
-				self.download(filename, socket, ident, loc)
+				self.download(filename, socket, ident, self.loc)
 			elif operation.decode()=="bye":
 				exit()
 			print("Operation complete successfully!")
@@ -107,7 +107,7 @@ class Server:
 		return f_space
 
 	def upload(self, sha256, filename, file, socket, ident, loc) :
-		newName = loc+'/'+sha256.decode()
+		newName = self.loc+'/'+sha256.decode()
 		#print("Storing as [{}]".format(newName))
 		with open(newName,"ab") as f:
 			f.write(file)
@@ -118,7 +118,7 @@ class Server:
 	def download(self, filename, socket, ident, loc):
 		print(filename)
 		fl=filename[0].decode()
-		newName=loc+'/'+sha256.decode()
+		newName=self.loc+'/'+sha256.decode()
 		print("Downloading [{}]".format(newName))
 		print("Send by [{}]".format(ident.decode()))
 		with open(newName, "rb") as f:
