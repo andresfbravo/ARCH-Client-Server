@@ -57,11 +57,16 @@ class Proxy:
 				self.socket.send(b"OK")
 
 			elif who.decode()=="client":
-				print("welcome client: ")
+				print("Welcome client: ")
 				operation=rest[0]
 				self.socket.send(b"OK")
 				if operation.decode()=="upload":
+					print("vamos a ver")
 					parts=self.socket.recv_json()
+					#self.socket.send(b"OK")
+					loc=["192.168.8.16:8000","192.168.8.16:8000","192.168.8.16:8000","192.168.8.16:8000","192.168.8.16:8000","192.168.8.16:8000"]
+					loc2=[x.encode() for x in loc]
+					self.socket.send_multipart(loc2)
 					print(parts)
 				#elif operation.decode()=="download":
 				#	for in range
