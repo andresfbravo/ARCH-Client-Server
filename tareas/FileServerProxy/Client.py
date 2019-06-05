@@ -10,7 +10,7 @@ import os
 import sys
 
 sizePart = 1024*1024*10
-ip="192.168.8.116"
+ip="192.168.9.1"
 PORT = "8002"
 sizeBuf = 65536
 
@@ -37,11 +37,15 @@ class Client:
 		context = zmq.Context()
 		self.socket_proxy = context.socket(zmq.REQ)
 		self.socket_proxy.connect("tcp://"+ip+":"+PORT)
+
+		context2 = zmq.Context()
+		self.socket_servers = context2.socket(zmq.REQ)
+
 		self.proxy_negotiations()
 
 	def proxy_negotiations(self):
 		print("Establishing connection to proxy ...")
-		self.socket_proxy.send_multipart([b"client", self.operation])
+		self.socket_proxy.send_multipart([b"client", self.operation, self.get_hash()])
 		response = self.socket_proxy.recv()
 		if response.decode()=="OK":
 			print("Proxy connected succesfully\n")
@@ -50,14 +54,15 @@ class Client:
 
 		if self.operation.decode()=='upload':
 		    self.upload_proxy()
-		    #self.upload_server(self.socket_servers, self.ident)
+		    self.upload_server()
 		elif operation.decode()=='download':
-			self.download(self.filename,self.socket_proxy,self.ident)
+			pass
+			#self.download(self.filename,self.socket_proxy,self.ident)
 		print("Operation complete ")
 
 	def upload_proxy(self):
 		print("Making file parts for send ...")
-		parts = []
+		self.parts = []
 		with open(self.route.decode()+self.filename.decode(), 'rb') as f:
 			while True:
 				byte = f.read(sizePart)
@@ -65,34 +70,37 @@ class Client:
 					break
 				sha2 = hashlib.sha256()
 				sha2.update(byte)
-				parts.append(sha2.hexdigest())
+				self.parts.append(sha2.hexdigest())
 
-		print("Parts to send: ",len(parts))
+		print("Parts to send: ",len(self.parts))
 		print("Preparing to send parts ...")
-		register={self.get_hash().decode():{"parts":parts}}
+		register={self.get_hash().decode():{"parts":self.parts}}
 		#register={"id":ident.decode(),"hash":sha256.decode(),"filename":filename.decode()}
 		#with open("register.json", "a") as f:
 			#json.dump(register, f)
 		self.socket_proxy.send_json(register)
 		#self.socket_servers.connect("tcp://"+ip+":"+PORT)
 		#return {"filename" : sha256.hexdigest(),"parts" :parts}
-		response = self.socket_proxy.recv_multipart()
-		print(response)
-
+		self.list_servers = self.socket_proxy.recv_multipart()
+		self.register = []
+		for x in range(0,len(self.parts)):
+			self.register.append({self.parts[x]:self.list_servers[x].decode()})
+		print(self.register)
 
 	def upload_server(self):
 		with open(self.route.decode()+self.filename.decode(), "rb") as f:
 			finished = False
 			part = 0
 			while not finished:
+				self.socket_servers.connect("tcp://"+self.list_servers[part].decode())
 				f.seek(part*sizePart)
 				bt = f.read(sizePart)
-				socket.send_multipart([self.get_hash(),self.ident, b"upload",self.filename, bt])
-				response = socket.recv()
+				
+				response = self.socket_servers.recv()
 				if response.decode()=="repeated":
 					print("The file already exists in server \n")
-					finished = True
 					break
+
 				if len(bt) < sizePart:
 					finished = True
 				print("Uploading part {}".format(part+1))
@@ -102,14 +110,27 @@ class Client:
 				else:
 					print("Error!")
 
-	def download(self,filename,socket,ID):
-		#print("Download not implemented yet!!!!")
-		socket.send_multipart([ID,b'download',filename])
-		response=socket.recv_multipart()
-		filename,info=response
-		print("write[{}]".format(filename))
-		self.writeBytes(filename.decode(),info)
-
+	def download(self):
+		socket.send(self.get_hash())
+		list_hash=socket.recv_multipart()
+		with open(self.route.decode()+self.filename.decode(), "ab") as f:
+			part = len(list_hash)
+			while part > 0:
+				self.socket_servers.connect("tcp://"+self.list_servers[part].decode())
+				f.seek(part*sizePart)
+				bt = f.read(sizePart)
+				response = self.socket_servers.recv()
+				if response.decode()=="repeated":
+					print("The file already exists in server \n")
+					break
+				if len(bt) < sizePart:
+					finished = True
+				print("Uploading part {}".format(part+1))
+				part+=1
+				if response.decode()=="OK":
+					print("Part send succesfully\n")
+				else:
+					print("Error!")
 	def writeBytes(self):
 		newName='new-'+self.route
 		print("Writing file...[{}]".format(newName))
