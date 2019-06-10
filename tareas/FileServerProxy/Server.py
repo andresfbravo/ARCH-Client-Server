@@ -103,7 +103,7 @@ class Server:
 	def upload(self, sha256, filename, file, socket, ident, loc) :
 		newName = self.loc+'/'+sha256.decode()
 		#print("Storing as [{}]".format(newName))
-		with open(newName,"ab") as f:
+		with open(newName,"xb") as f:
 			f.write(file)
 			self.f_space=self.f_space-1
 		socket.send(b"OK")  

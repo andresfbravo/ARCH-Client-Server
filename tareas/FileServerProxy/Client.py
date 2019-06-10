@@ -98,7 +98,7 @@ class Client:
 				self.socket_servers.connect("tcp://"+self.list_servers[part].decode())
 				f.seek(part*sizePart)
 				bt = f.read(sizePart)
-				self.socket_servers.send_multipart([self.get_hash(),self.ident,b"upload",self.filename, bt])
+				self.socket_servers.send_multipart([(self.parts[part]).encode(),self.ident,b"upload",self.filename, bt])
 				response = self.socket_servers.recv()
 				
 				if len(bt) < sizePart:
