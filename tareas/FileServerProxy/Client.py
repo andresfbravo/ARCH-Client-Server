@@ -10,7 +10,7 @@ import os
 import sys
 
 sizePart = 1024*1024*10
-ip="192.168.9.1"
+ip="localhost"
 PORT = "8002"
 sizeBuf = 65536
 
@@ -18,11 +18,11 @@ class Client:
 	def Start(self):
 		os.system("clear")
 		print("\n-- Welcome to UltraServer¢2019 --\n")
-		print(".\tUse <id> <function> <route> to acces interface")
-		print(".\t<id>\t  use the same id for all your consults")
-		print(".\t<function> there is 2 options:\n\t   \"upload\"\n\t   \"download\"")
-		print(".\t<route>\trute of the file, </home/images> \n")
-		print(".\t<filename>\tthe name of the file <ejemplo.jpg> \n")
+		print("Use <id> <function> <route> to acces interface")
+		print("<id>\t  use the same id for all your consults")
+		print("<function> there is 2 options:\n\t   \"upload\"\n\t   \"download\"")
+		print("<route>\trute of the file, </home/images> \n")
+		print("<filename>\tthe name of the file <ejemplo.jpg> \n")
 
 		if len(sys.argv) != 5:
 			print("\n-- Error --\n")
@@ -49,16 +49,19 @@ class Client:
 		response = self.socket_proxy.recv()
 		if response.decode()=="OK":
 			print("Proxy connected succesfully\n")
-		else:
-			print("Error conecting to proxy!")
+			if self.operation.decode()=='upload':
+			    self.upload_proxy()
+			    self.upload_server()
+			elif operation.decode()=='download':
+				pass
+				#self.download(self.filename,self.socket_proxy,self.ident)
 
-		if self.operation.decode()=='upload':
-		    self.upload_proxy()
-		    self.upload_server()
-		elif operation.decode()=='download':
-			pass
-			#self.download(self.filename,self.socket_proxy,self.ident)
+		if response.decode()=="repeated":
+			print("Proxy connected succesfully\n")
+			print("This file already exists")
+			
 		print("Operation complete ")
+		
 
 	def upload_proxy(self):
 		print("Making file parts for send ...")
@@ -95,12 +98,9 @@ class Client:
 				self.socket_servers.connect("tcp://"+self.list_servers[part].decode())
 				f.seek(part*sizePart)
 				bt = f.read(sizePart)
-				
+				self.socket_servers.send_multipart([self.get_hash(),self.ident,b"upload",self.filename, bt])
 				response = self.socket_servers.recv()
-				if response.decode()=="repeated":
-					print("The file already exists in server \n")
-					break
-
+				
 				if len(bt) < sizePart:
 					finished = True
 				print("Uploading part {}".format(part+1))
@@ -109,6 +109,7 @@ class Client:
 					print("Part send succesfully\n")
 				else:
 					print("Error!")
+
 
 	def download(self):
 		socket.send(self.get_hash())

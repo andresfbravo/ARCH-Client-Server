@@ -1,5 +1,5 @@
 """
-Created on Tue Apr 16 2019
+Created on Tue May 09 2019
 @author: Esteban Grisales && Andres Felipe Bravo
 Arquitectura Cliente Servidor - UTP 
 """
@@ -9,10 +9,8 @@ import json
 import os
 
 sizePart = 1024*1024*10  #bytes
-f_space = 1000
 IP_PROXY = "localhost"
 PORT_PROXY = "8002"
-#PORT_CLIENTS = "8003"
 """{sha256.decode():
 	{"data":[{ident.decode():filename.decode()}],
 	"parts":[]
@@ -20,6 +18,7 @@ PORT_PROXY = "8002"
 """
 class Server:
 	def Start(self):
+		self.f_space = 1000
 		os.system("clear")
 		print("-- Welcome to UltraServer¢2019 --\n")
 		print("SYNTAX: python3 Server.py <folder> <ip> <port> <register> \n")
@@ -31,7 +30,7 @@ class Server:
 		if len(sys.argv) != 5:
 			print("\n-- Error --\n")
 			print("\tInvalid sintax")
-			exit()self.
+			exit()
 
 		self.register={}
 		self.reg_file=sys.argv[4]	
@@ -66,7 +65,7 @@ class Server:
 		#a = input()
 		PROXY = "tcp://" + IP_PROXY + ":" + PORT_PROXY
 		socketP.connect(PROXY)
-		socketP.send_multipart([b"server",self.IP_SERVER.encode(),self.PORT_SERVER.encode(),str(f_space).encode()])
+		socketP.send_multipart([b"server",self.IP_SERVER.encode(),self.PORT_SERVER.encode(),str(self.f_space).encode()])
 		"""req = socketP.recv()
 		if req.decode()=="NEXT":
 			socketP.send_json(self.register)
@@ -84,14 +83,9 @@ class Server:
 			#register.update({sha256.decode})
 			print("New request: %s" % operation.decode())
 			
-			if (sha256.decode() in self.register):
-				print("The file already exists") 
-				socket.send(b"repeated")  
-			else:
-				self.register.update({sha256.decode():{"data":[ident.decode(),filename.decode()],"parts":[]}})
-			
-				with open(self.reg_file, "w") as f:
-					json.dump(self.register, f)
+			self.register.update({sha256.decode():{"data":[ident.decode(),filename.decode()],"parts":[]}})
+			with open(self.reg_file, "w") as f:
+				json.dump(self.register, f)
 
 			if operation.decode()=="upload":
 				self.upload(sha256, filename, file, socket, ident, self.loc)
@@ -104,14 +98,14 @@ class Server:
 			print("Operation complete successfully!")
 
 	def getCapacity(self):
-		return f_space
+		return self.f_space
 
 	def upload(self, sha256, filename, file, socket, ident, loc) :
 		newName = self.loc+'/'+sha256.decode()
 		#print("Storing as [{}]".format(newName))
 		with open(newName,"ab") as f:
 			f.write(file)
-			f_space=f_space-1
+			self.f_space=self.f_space-1
 		socket.send(b"OK")  
 		print("[{} send {}]".format(ident.decode(),filename.decode()))
 
