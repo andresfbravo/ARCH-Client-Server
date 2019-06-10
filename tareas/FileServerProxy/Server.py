@@ -89,10 +89,11 @@ class Server:
 
 			if operation.decode()=="upload":
 				self.upload(sha256, filename, file, socket, ident, self.loc)
+			
 			elif operation.decode()=="download":
-				filename,file=rest
-				print("File: [{}]".format(filename.decode()))
-				self.download(filename, socket, ident, self.loc)
+				sha256 = socket.recv_multipart()
+				print("File: [{}]".format(sha256.decode()))
+				self.download(sha256, socket, self.loc)
 			elif operation.decode()=="bye":
 				exit()
 			print("Operation complete successfully!")
@@ -109,23 +110,21 @@ class Server:
 		socket.send(b"OK")  
 		print("[{} send {}]".format(ident.decode(),filename.decode()))
 
-	def download(self, filename, socket, ident, loc):
-		print(filename)
-		fl=filename[0].decode()
+	def download(self, sha256, socket, loc):
+		print(sha256)
+		#fl=filename[0].decode()
+
 		newName=self.loc+'/'+sha256.decode()
 		print("Downloading [{}]".format(newName))
 		print("Send by [{}]".format(ident.decode()))
-		with open(newName, "rb") as f:
-			finished = False
-			part = 0
-			while not finished:
-				print("Uploading part {}".format(part+1))
-				f.seek(part*partSize)
-				bt = f.read(partSize)
-				socket.send_multipart([fl.encode(), bt])
-				part = part + 1
-			if len(bt) < partSize:
-				finished = True
+		with open(newName, "rb") as f:			
+			print("Downloading part {}".format(filename))
+			bt = f.read()
+			socket.send_multipart(bt)
+		res = socket.recv()
+		if (res == "OK"):
+			print("send successfully!!")
+			
 
 		print("Downloaded!!")
 

@@ -53,8 +53,7 @@ class Client:
 			    self.upload_proxy()
 			    self.upload_server()
 			elif operation.decode()=='download':
-				pass
-				#self.download(self.filename,self.socket_proxy,self.ident)
+				self.download()
 
 		if response.decode()=="repeated":
 			print("Proxy connected succesfully\n")
@@ -112,7 +111,7 @@ class Client:
 
 
 	def download(self):
-		socket.send(self.get_hash())
+		self.socket_proxy.send(self.get_hash())
 		list_hash=socket.recv_multipart()
 		with open(self.route.decode()+self.filename.decode(), "ab") as f:
 			part = len(list_hash)

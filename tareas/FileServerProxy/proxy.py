@@ -75,8 +75,8 @@ class Proxy:
 					self.socket.send(b"OK")
 					if operation.decode()=="upload":
 						self.upload(hash_file)
-				#elif operation.decode()=="download":
-				#	for in range
+					elif operation.decode()=="download":
+						self.download(hash_file)
 			print("Operation complete successfully!")
 			#print(self.register_server)
 
@@ -101,6 +101,11 @@ class Proxy:
 		loc2=[x.encode() for x in loc]
 		self.socket.send_multipart(loc2)
 		#self.socket.send(b"OK")
+
+	def download(self,hash_file):
+		print("send parts ...")
+		dicc = self.main_register.get(hash_file)
+		self.socket.send(dicc.encode())
 
 	
 
