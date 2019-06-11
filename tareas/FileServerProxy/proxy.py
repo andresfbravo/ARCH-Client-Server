@@ -66,17 +66,21 @@ class Proxy:
 
 			elif who.decode()=="client":
 				print("Welcome client: ")
-				operation,hash_file = rest
-				print("Operation :"+operation.decode())
-				if (hash_file.decode() in self.main_register):
-					print("ya existe")
-					self.socket.send(b"repeated")
+				operation, hash_file = rest
+				if operation.decode()=="upload":
+					if (hash_file.decode() in self.main_register):
+						print("ya existe")
+						self.socket.send(b"repeated")
 				else:
-					self.socket.send(b"OK")
-					if operation.decode()=="upload":
-						self.upload(hash_file)
-					elif operation.decode()=="download":
-						self.download(hash_file)
+					if operation.decode()=="download":
+						print("hagamos download")
+
+				print("Operation :"+operation.decode())
+				self.socket.send(b"OK")
+				if operation.decode()=="upload":
+					self.upload(hash_file)
+				elif operation.decode()=="download":
+					self.download(hash_file)
 			print("Operation complete successfully!")
 			#print(self.register_server)
 
@@ -87,28 +91,33 @@ class Proxy:
 		self.main_register.update(parts)
 		with open(self.reg_file, "w") as f:
 			json.dump(self.main_register, f)
-		print(self.main_register)
 
 		n=len(self.main_register.get(hash_file.decode()).get('parts'))
-		print("esto es n: "+str(n))
+		print("Parts to recive: "+str(n))
 		#a = "192.168.9.1:8000"
 		loc=[]
 		x=0
 		while x < n:
 			for s in range(0,len(self.register_server)):
+				if x == n:
+					break
 				loc.append(self.register_server[s])
-			x=x+len(self.register_server)
-		loc2=[x.encode() for x in loc]
+				x=x+1
+
+
+		loc2=[x.encode() for x in loc] # archivo codificado para envio
 		self.socket.send_multipart(loc2)
+		self.main_register.get(hash_file.decode()).update({'loc':loc})
+		print(self.main_register)
 		#self.socket.send(b"OK")
 
 	def download(self,hash_file):
 		print("send parts ...")
-		hash_file = self.socket_proxy.recv()
-		dicc = self.main_register.get(hash_file)
-		self.socket.send(dicc.encode())
-		
-
+		hash_file = self.socket.recv()
+		print("hash file: {}".format(hash_file))
+		dicc = self.main_register.get(hash_file.decode())
+		locs = json.dumps(dicc)
+		self.socket.send_json(locs)
 
 if __name__ == '__main__':
 	Proxy = Proxy()

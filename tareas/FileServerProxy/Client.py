@@ -38,8 +38,6 @@ class Client:
 		self.socket_proxy = context.socket(zmq.REQ)
 		self.socket_proxy.connect("tcp://"+ip+":"+PORT)
 
-		context2 = zmq.Context()
-		self.socket_servers = context2.socket(zmq.REQ)
 
 		self.proxy_negotiations()
 
@@ -50,18 +48,15 @@ class Client:
 		if response.decode()=="OK":
 			print("Proxy connected succesfully\n")
 			if self.operation.decode()=='upload':
-			    self.upload_proxy()
-			    self.upload_server()
-			
-			elif operation.decode()=='download':
+				if response.decode()=="repeated":
+					print("Proxy connected succesfully\n")
+					print("This file already exists")
+				self.upload_proxy()
+				self.upload_server()
+			elif self.operation.decode()=='download':
 				self.download()
-			
-		if response.decode()=="repeated":
-			print("Proxy connected succesfully\n")
-			print("This file already exists")
-			
+
 		print("Operation complete ")
-		
 
 	def upload_proxy(self):
 		print("Making file parts for send ...")
@@ -91,35 +86,52 @@ class Client:
 		print(self.register)
 
 	def upload_server(self):
+		context2 = zmq.Context()
 		with open(self.route.decode()+self.filename.decode(), "rb") as f:
 			finished = False
 			part = 0
 			while not finished:
+				self.socket_servers = context2.socket(zmq.REQ)
 				self.socket_servers.connect("tcp://"+self.list_servers[part].decode())
 				f.seek(part*sizePart)
 				bt = f.read(sizePart)
 				self.socket_servers.send_multipart([(self.parts[part]).encode(),self.ident,b"upload",self.filename, bt])
 				response = self.socket_servers.recv()
-				
+
 				if len(bt) < sizePart:
 					finished = True
 				print("Uploading part {}".format(part+1))
 				part+=1
 				if response.decode()=="OK":
 					print("Part send succesfully\n")
+					self.socket_servers.close()
 				else:
 					print("Error!")
 
 
 	def download(self):
+		context2 = zmq.Context()
 		self.socket_proxy.send(self.filename)
-		list_hash=socket.recv()
-		print(list_hash.decode())
+		list_hash = self.socket_proxy.recv_json()
+		reg_down = json.loads(list_hash) 	# lista obtenida del proxy
+		print(reg_down)
+		print("Conecting to servers ...")
+		parts = reg_down.get("parts")
+		servers = reg_down.get("loc")
+		self.socket_servers = context2.socket(zmq.REQ)
+		self.socket_servers.connect("tcp://"+servers[0])
+		self.socket_servers.send_multipart([(parts[0]).encode(),self.ident,b"download"])
+
+		newName=self.socket_servers.recv()
+		print("Filename obtained: {}".format(newName))
+		self.socket_servers.send(b"OK")
 		"""
 		with open(self.route.decode()+self.filename.decode(), "ab") as f:
 			part = len(list_hash)
 			while part > 0:
+				self.socket_servers = context2.socket(zmq.REQ)
 				self.socket_servers.connect("tcp://"+self.list_servers[part].decode())
+				self.socket_servers.send_multipart([(self.parts[part]).encode(),self.ident,b"upload",self.filename, bt])
 				f.seek(part*sizePart)
 				bt = f.read(sizePart)
 				response = self.socket_servers.recv()
@@ -131,28 +143,32 @@ class Client:
 				print("Uploading part {}".format(part+1))
 				part+=1
 				if response.decode()=="OK":
+					self.socket_servers.close()
 					print("Part send succesfully\n")
 				else:
 					print("Error!")
-		"""
+
 	def writeBytes(self):
-		newName='new-'+self.route
 		print("Writing file...[{}]".format(newName))
 
 		with open(newName,"wb") as f:
 		    f.write(info)
 		print("Downloaded [{}]".format(newName))
+		"""
 
 	def get_hash(self):
-		with open(self.route.decode()+self.filename.decode(), 'rb') as f :
-			sha256 = hashlib.sha256()
-			while True:
-				file = f.read(sizeBuf)
-				if not file :
-					break
-				sha256.update(file)
-		hashfile = sha256.hexdigest().encode()
-		return hashfile
+		if self.operation.decode() == "upload":
+			with open(self.route.decode()+self.filename.decode(), 'rb') as f :
+				sha256 = hashlib.sha256()
+				while True:
+					file = f.read(sizeBuf)
+					if not file :
+						break
+					sha256.update(file)
+			hashfile = sha256.hexdigest().encode()
+			return hashfile
+		elif self.operation.decode() == "download":
+			return self.filename
 
 if __name__ == '__main__':
 	Cliente = Client()
