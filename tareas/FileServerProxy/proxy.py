@@ -1,7 +1,7 @@
 """
 Created on Tue Apr 16 2019
 @author: Esteban Grisales && Andres Felipe Bravo
-Arquitectura Cliente Servidor - UTP 
+Arquitectura Cliente Servidor - UTP
 """
 import sys
 import zmq
@@ -37,11 +37,11 @@ class Proxy:
 		if os.path.isfile('./'+self.reg_file) == False:
 			print("\nThis register file doesn't exist ")
 			print("Creating the new register /{}\n".format(self.reg_file))
-			with open(self.reg_file,"x") as f: 	
+			with open(self.reg_file,"x") as f:
 				json.dump(self.main_register,f)
-		else:	
+		else:
 			print("Register find\nCharging file ...\n")
-			with open(self.reg_file) as read_file: 
+			with open(self.reg_file) as read_file:
 				self.main_register=json.load(read_file)
 
 		self.context = zmq.Context()
@@ -49,7 +49,7 @@ class Proxy:
 		self.socket.bind("tcp://*:"+PORT_SERVERS)
 		print ("Proxy is now listening servers in port "+PORT_SERVERS)
 		self.listening()
-	
+
 	def listening(self):
 		self.register_server=[]
 		while True:
@@ -88,7 +88,7 @@ class Proxy:
 		with open(self.reg_file, "w") as f:
 			json.dump(self.main_register, f)
 		print(self.main_register)
-		
+
 		n=len(self.main_register.get(hash_file.decode()).get('parts'))
 		print("esto es n: "+str(n))
 		#a = "192.168.9.1:8000"
@@ -104,10 +104,11 @@ class Proxy:
 
 	def download(self,hash_file):
 		print("send parts ...")
+		hash_file = self.socket_proxy.recv()
 		dicc = self.main_register.get(hash_file)
 		self.socket.send(dicc.encode())
+		
 
-	
 
 if __name__ == '__main__':
 	Proxy = Proxy()
