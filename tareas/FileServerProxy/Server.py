@@ -12,7 +12,8 @@ sizePart = 1024*1024*10  #bytes
 IP_PROXY = "192.168.9.201"
 PORT_PROXY = "8000"
 """{sha256.decode():
-	{"data":[{ident.decode():filename.decode()}],
+	{"id":id.decode(),
+	"fnm":filename.decode(),
 	"parts":[]
 	}}
 """
@@ -79,21 +80,27 @@ class Server:
 	def listen_clients(self, socket):
 		while True:
 			print("\nListening clients...\n")
-			sha256, ident, operation,filename, file = socket.recv_multipart()
+			sha256, ident, operation,*rest = socket.recv_multipart()
 			#register.update({sha256.decode})
 			print("New request: %s" % operation.decode())
 			
-			self.register.update({sha256.decode():{"data":[ident.decode(),filename.decode()],"parts":[]}})
-			with open(self.reg_file, "w") as f:
-				json.dump(self.register, f)
 
 			if operation.decode()=="upload":
-				self.upload(sha256, filename, file, socket, ident, self.loc)
+				filename, file = rest
+				data={}
+				self.register.update({sha256.decode():{"id":ident.decode(),"fnm":filename.decode(),"parts":[]}})
+				with open(self.reg_file, "w") as f:
+					json.dump(self.register, f)
+				self.upload(sha256, filename, file, socket, ident)
 			
-			elif operation.decode()=="download":
-				sha256 = socket.recv_multipart()
-				print("File: [{}]".format(sha256.decode()))
-				self.download(sha256, socket, self.loc)
+			if operation.decode()=="download":
+				print("Part request: {}".format(sha256.decode()))
+				
+				#print(sha256.decode())
+				name = self.register.get(sha256.decode()).get("fnm")
+				print("File name: {}".format(name))
+				socket.send(name.encode())
+				self.download(sha256, socket, ident)
 			elif operation.decode()=="bye":
 				exit()
 			print("Operation complete successfully!")
@@ -101,7 +108,7 @@ class Server:
 	def getCapacity(self):
 		return self.f_space
 
-	def upload(self, sha256, filename, file, socket, ident, loc) :
+	def upload(self, sha256, filename, file, socket, ident) :
 		newName = self.loc+'/'+sha256.decode()
 		#print("Storing as [{}]".format(newName))
 		with open(newName,"xb") as f:
@@ -110,12 +117,10 @@ class Server:
 		socket.send(b"OK")  
 		print("[{} send {}]".format(ident.decode(),filename.decode()))
 
-	def download(self, sha256, socket, loc):
-		print(sha256)
-		#fl=filename[0].decode()
-
+	def download(self, sha256, socket, ident):
+		filename = self.register.get(sha256)
 		newName=self.loc+'/'+sha256.decode()
-		print("Downloading [{}]".format(newName))
+		#print("Downloading [{}]".format(newName))
 		print("Send by [{}]".format(ident.decode()))
 		with open(newName, "rb") as f:			
 			print("Downloading part {}".format(filename))
