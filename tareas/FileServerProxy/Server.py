@@ -9,7 +9,7 @@ import json
 import os
 
 sizePart = 1024*1024*10  #bytes
-IP_PROXY = "192.168.9.1"
+IP_PROXY = "192.168.9.201"
 PORT_PROXY = "8000"
 """{sha256.decode():
 	{"data":[{ident.decode():filename.decode()}],

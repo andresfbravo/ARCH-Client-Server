@@ -10,8 +10,8 @@ import os
 import sys
 
 sizePart = 1024*1024*10
-ip="localhost"
-PORT = "8001"
+ip="192.168.9.201"
+PORT = "8000"
 sizeBuf = 65536
 
 class Client:
@@ -52,10 +52,10 @@ class Client:
 			if self.operation.decode()=='upload':
 			    self.upload_proxy()
 			    self.upload_server()
-			"""
+			
 			elif operation.decode()=='download':
 				self.download()
-			"""
+			
 		if response.decode()=="repeated":
 			print("Proxy connected succesfully\n")
 			print("This file already exists")
@@ -112,8 +112,10 @@ class Client:
 
 
 	def download(self):
-		self.socket_proxy.send(self.get_hash())
-		list_hash=socket.recv_multipart()
+		self.socket_proxy.send(self.filename)
+		list_hash=socket.recv()
+		print(list_hash.decode())
+		"""
 		with open(self.route.decode()+self.filename.decode(), "ab") as f:
 			part = len(list_hash)
 			while part > 0:
@@ -132,7 +134,7 @@ class Client:
 					print("Part send succesfully\n")
 				else:
 					print("Error!")
-
+		"""
 	def writeBytes(self):
 		newName='new-'+self.route
 		print("Writing file...[{}]".format(newName))
