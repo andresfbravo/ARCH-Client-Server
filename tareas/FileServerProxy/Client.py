@@ -11,7 +11,7 @@ import sys
 
 sizePart = 1024*1024*10
 ip="localhost"
-PORT = "8002"
+PORT = "8001"
 sizeBuf = 65536
 
 class Client:
@@ -52,9 +52,10 @@ class Client:
 			if self.operation.decode()=='upload':
 			    self.upload_proxy()
 			    self.upload_server()
+			"""
 			elif operation.decode()=='download':
 				self.download()
-
+			"""
 		if response.decode()=="repeated":
 			print("Proxy connected succesfully\n")
 			print("This file already exists")
@@ -131,6 +132,7 @@ class Client:
 					print("Part send succesfully\n")
 				else:
 					print("Error!")
+
 	def writeBytes(self):
 		newName='new-'+self.route
 		print("Writing file...[{}]".format(newName))

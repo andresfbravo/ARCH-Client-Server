@@ -9,7 +9,7 @@ import json
 import os
 
 sizePart = 1024*1024*10  #bytes
-PORT_SERVERS = "8002"
+PORT_SERVERS = "8000"
 
 """
 main register
