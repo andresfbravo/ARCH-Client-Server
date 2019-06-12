@@ -9,7 +9,7 @@ import json
 import os
 
 sizePart = 1024*1024*10  #bytes
-IP_PROXY = "192.168.9.201"
+IP_PROXY = "192.168.9.81"#"192.168.9.201"
 PORT_PROXY = "8000"
 """{sha256.decode():
 	{"id":id.decode(),
@@ -118,14 +118,18 @@ class Server:
 		print("[{} send {}]".format(ident.decode(),filename.decode()))
 
 	def download(self, sha256, socket, ident):
-		filename = self.register.get(sha256)
+		print("probando")
+		filename = sha256.decode()
+		print("filename is: ")
+		print(filename)
+		print("ya fue!!")
 		newName=self.loc+'/'+sha256.decode()
 		#print("Downloading [{}]".format(newName))
 		print("Send by [{}]".format(ident.decode()))
 		with open(newName, "rb") as f:			
 			print("Downloading part {}".format(filename))
 			bt = f.read()
-			socket.send_multipart(bt)
+			socket.send_multipart([bt])
 		res = socket.recv()
 		if (res == "OK"):
 			print("send successfully!!")
