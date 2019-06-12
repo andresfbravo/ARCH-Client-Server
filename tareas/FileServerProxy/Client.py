@@ -10,7 +10,7 @@ import os
 import sys
 
 sizePart = 1024*1024*10
-ip="192.168.9.201"
+ip="localhost"
 PORT = "8000"
 sizeBuf = 65536
 
@@ -119,42 +119,18 @@ class Client:
 		parts = reg_down.get("parts")
 		servers = reg_down.get("loc")
 		self.socket_servers = context2.socket(zmq.REQ)
-		self.socket_servers.connect("tcp://"+servers[0])
-		self.socket_servers.send_multipart([(parts[0]).encode(),self.ident,b"download"])
-
-		newName=self.socket_servers.recv()
-		print("Filename obtained: {}".format(newName))
-		self.socket_servers.send(b"OK")
-		"""
-		with open(self.route.decode()+self.filename.decode(), "ab") as f:
-			part = len(list_hash)
-			while part > 0:
+		for i in range(0,len(parts)):
+			self.socket_servers.connect("tcp://"+servers[i])
+			self.socket_servers.send_multipart([(parts[i]).encode(),self.ident,b"download"])
+			Filename, bt = self.socket_servers.recv_multipart()
+			with open(self.route.decode()+"/"+Filename.decode(), "ab") as f:
 				self.socket_servers = context2.socket(zmq.REQ)
-				self.socket_servers.connect("tcp://"+self.list_servers[part].decode())
-				self.socket_servers.send_multipart([(self.parts[part]).encode(),self.ident,b"upload",self.filename, bt])
-				f.seek(part*sizePart)
-				bt = f.read(sizePart)
-				response = self.socket_servers.recv()
-				if response.decode()=="repeated":
-					print("The file already exists in server \n")
-					break
-				if len(bt) < sizePart:
-					finished = True
-				print("Uploading part {}".format(part+1))
-				part+=1
-				if response.decode()=="OK":
-					self.socket_servers.close()
-					print("Part send succesfully\n")
-				else:
-					print("Error!")
-
-	def writeBytes(self):
-		print("Writing file...[{}]".format(newName))
-
-		with open(newName,"wb") as f:
-		    f.write(info)
-		print("Downloaded [{}]".format(newName))
-		"""
+				self.socket_servers.connect("tcp://"+servers[i])
+				f.seek(i*sizePart)
+				f.write(bt)
+				self.socket_servers.send(b"OK")
+				self.socket_servers.close()
+				print("Part download succesfully\n")
 
 	def get_hash(self):
 		if self.operation.decode() == "upload":
