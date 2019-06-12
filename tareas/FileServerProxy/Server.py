@@ -7,6 +7,7 @@ import sys
 import zmq
 import json
 import os
+import hashlib
 
 sizePart = 1024*1024*10  #bytes
 IP_PROXY = "192.168.9.81"#"192.168.9.201"
@@ -94,12 +95,6 @@ class Server:
 				self.upload(sha256, filename, file, socket, ident)
 			
 			if operation.decode()=="download":
-				print("Part request: {}".format(sha256.decode()))
-				
-				#print(sha256.decode())
-				name = self.register.get(sha256.decode()).get("fnm")
-				print("File name: {}".format(name))
-				socket.send(name.encode())
 				self.download(sha256, socket, ident)
 			elif operation.decode()=="bye":
 				exit()
@@ -118,23 +113,30 @@ class Server:
 		print("[{} send {}]".format(ident.decode(),filename.decode()))
 
 	def download(self, sha256, socket, ident):
-		print("probando")
+		print("Part request: {}".format(sha256.decode()))
+		
+		#print(sha256.decode())
+		name = self.register.get(sha256.decode()).get("fnm")
+		print("File name: {}".format(name))
+		#socket.send(name.encode())
+
+		#nombre = socket.recv()
 		filename = sha256.decode()
-		print("filename is: ")
-		print(filename)
-		print("ya fue!!")
 		newName=self.loc+'/'+sha256.decode()
 		#print("Downloading [{}]".format(newName))
 		print("Send by [{}]".format(ident.decode()))
+		
 		with open(newName, "rb") as f:			
 			print("Downloading part {}".format(filename))
-			bt = f.read()
-			socket.send_multipart([bt])
+			bt = f.read(sizePart)
+			print("prueba1")
+			socket.send_multipart([name.encode(),bt])
+			print("prueba2")
 		res = socket.recv()
 		if (res == "OK"):
 			print("send successfully!!")
 			
-
+		#socket.send(b"OK")
 		print("Downloaded!!")
 
 if __name__ == '__main__':
