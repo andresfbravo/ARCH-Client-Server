@@ -62,32 +62,42 @@ class Proxy:
 				print(ip.decode(),port.decode(),parts.decode())
 				nodo=ip.decode()+":"+port.decode()
 				self.register_server.append(nodo)
-				self.socket.send(b"OK")
 
 			elif who.decode()=="client":
 				print("Welcome client: ")
-				operation, hash_file = rest
+				operation, hash_file, register = rest
+				print(register.decode())
+				parts = eval(register.decode())
+				#parts = json.loads(register.decode())
+				#parts = json.dumps(partes)
+				for key in parts.values():
+					print(key)
+
+				print(parts)
+				"""
 				if operation.decode()=="upload":
 					if (hash_file.decode() in self.main_register):
 						print("ya existe")
 						self.socket.send(b"repeated")
+					else:	
+						self.socket.send(b"OK")
 				else:
 					if operation.decode()=="download":
 						print("hagamos download")
-
+				"""
 				print("Operation :"+operation.decode())
-				self.socket.send(b"OK")
+				#self.socket.send(b"OK")
 				if operation.decode()=="upload":
-					self.upload(hash_file)
+					self.upload(hash_file,parts)
 				elif operation.decode()=="download":
 					self.download(hash_file)
 			print("Operation complete successfully!")
 			#print(self.register_server)
 
 
-	def upload(self,hash_file):
+	def upload(self,hash_file,parts):
 		print("Reciving parts ...")
-		parts=self.socket.recv_json()
+		#parts=self.socket.recv_json()
 		self.main_register.update(parts)
 		with open(self.reg_file, "w") as f:
 			json.dump(self.main_register, f)

@@ -10,7 +10,7 @@ import os
 import hashlib
 
 sizePart = 1024*1024*10  #bytes
-IP_PROXY = "192.168.9.81"#"192.168.9.201"
+IP_PROXY = "localhost"#"192.168.9.201"
 PORT_PROXY = "8000"
 """{sha256.decode():
 	{"id":id.decode(),
