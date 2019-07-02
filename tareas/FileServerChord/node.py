@@ -22,12 +22,26 @@ m = 256
 
 class Node:
 	def __init__(self):
+		"""
 		self.mac = str(uuid.getnode())
-		hash_calc = hashlib.sha256()
-		hash_calc.update(self.mac.encode())
-		self.hash = str(hash_calc.hexdigest())
-		self.successor = {}
-		print(self.hash)
+		print(int(self.mac, 10))
+		self.hash_calc = hashlib.sha256()
+		self.hash_calc.update(int(self.mac, 10))
+		print(self.hash_calc)
+		"""
+
+		#self.hash = str(hash_calc.hexdigest())
+		#self.successor = {}
+	def ident(self):
+		x = ""
+		s = self.mac.split(":")
+		for i in s:
+			x = x + i
+		print(x)
+		self.hash_calc = hashlib.sha256()
+		self.hash_calc.update(x.encode())
+		self.hash_calc = self.hash_calc.hexdigest()
+		print(self.hash_calc)
 
 	def Start(self):
 		print("\n-- Welcome to UltraServerChord¢2019 --\n")
@@ -35,7 +49,7 @@ class Node:
 		print("\tpython3 node.py ip port<node> ip:port<ring> <folderName> \n")
 		print("Example: python3 node.py 192.168.0.0 8001 127.255.255.0:8080 folder")
 
-		if len(sys.argv) != 5:
+		if len(sys.argv) != 6:
 			print("\n-- Error --\n")
 			print("\tInvalid sintax")
 			exit()
@@ -45,6 +59,12 @@ class Node:
 		self.web=sys.argv[3]
 		self.loc=sys.argv[4]
 		self.register={}
+		self.first=False
+
+		#para pruebas locales
+		self.mac = sys.argv[5]
+		
+		Node.ident()
 
 		if os.path.isdir('./'+self.loc) == False:
 			print("\nThis folder doesn't exist ")
@@ -63,44 +83,70 @@ class Node:
 		# if the web direction is the same of my ip address that means it's the first node
 		if self.web == str(ip+":"+port):
 			print("i am the first u.u")
-			self.successor = {"hash":self.hash,"ip":str(ip+port)}
+			self.first = True
+			self.successor = {"hash":self.hash_calc,"ip":str(ip+port)}
 		else:
+			print ("Connecting to web now ...")
 			socket_s.connect("tcp://" + self.web)
-			socket_s.send_multipart([b"add_successor",self.hash.encode(),ip.encode(),port.encode()])
+			socket_s.send_multipart([b"add_successor",self.hash_calc.encode(),ip.encode(),port.encode()])
 			response = socket_s.recv_multipart()
-
 			while response[0].decode() == "this way":
 				other_socket = eval(response[1].decode())
 				print("Asking again to "+other_socket.get("hash")+":( ")
-
+				response = ""
 				#socket_s.connect("tcp://" + )
 				#socket_s.send_multipart([b"add_successor", self.hash.encode(), ip.encode(), port.encode()])
 
 			if response[0].decode() == "welcome":
 				print("I know my place =D")
+				if response[1].decode() == "successor":
+					print("I am him successor")
+					
+					rta = socket_s.recv_multipart()
+					print(rta)
+
 				#socket_s.send_multipart([b"set_successor",self.hash.encode(),ip.encode(),port.encode()])
 				#recv_successor = self
 
-		print ("Connecting to web now ...")
 		while True:
 			print("\nListening in "+ip+":"+port+" ...")
 			query = self.socket.recv_multipart()
-			if query[0].decode() == "add_successor":
-				print("ask for new node\n"+query[1].decode()+"\nip "+query[2].decode()+":"+query[3].decode()+" O.O")
-				req_successor={"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
-				x=int(self.hash, 16)
-				y=int(query[1].decode(),16)
-				z=int(self.successor.get("hash"), 16)
-				print(x,y,z)
-				if x > y and y < z :
-					print ("this node comes here")
-					self.socket.send_multipart(b"welcome")
-				else:
-					print ("this node is lose ")
-					self.socket.send_multipart([b"this way",str(self.successor).encode()])
 
-			if query[0].decode() == "successor":
-				self.socket.send(self.successor.encode())
+			if query[0].decode() == "add_successor" and self.first == False:
+				print("Ask for new node\n"+query[1].decode()+"\nip "+query[2].decode()+":"+query[3].decode()+" O.O")
+				x=self.hash_calc # mi hash
+				y=query[1].decode() # hash del que habla
+				z=self.successor.get("hash") # mi sucesor
+				print(y+"<"+x+"::"+y+">"+z)
+				if x < z:
+					if x < y or y < z:
+						print ("this node comes here")
+						self.socket.send_multipart([self.successor.get("hash").encode(),self.successor.get("ip")])
+					else:
+						print ("this node is lose ")
+						self.socket.send_multipart([b"this way",str(self.successor).encode()])
+				if x > z:
+					if x < y and y < z :
+						print ("this node comes here")
+						self.socket.send_multipart([self.successor.get("hash").encode(),self.successor.get("ip")])
+					else:
+						print ("this node is lose ")
+						self.socket.send_multipart([b"this way",str(self.successor).encode()])
+
+			if query[0].decode() == "add_successor" and self.first == True:
+				print("Ask for first node\n"+query[1].decode()+"\nip "+query[2].decode()+":"+query[3].decode()+" O.O")
+				x=self.hash_calc # mi hash
+				y=query[1].decode() # hash del que habla
+				print ("this node is my first partner ")
+				self.socket.send_multipart([self.successor.get("hash").encode(),self.successor.get("ip").encode()])
+				self.successor={"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
+				self.first=False
+
+			if query[0].decode() == "set_successor":
+				self.socket.send_multipart([self.successor.get("hash").encode(),self.successor.get("ip")])
+				self.successor = {"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
+				print("new successor saved: ")
+				print(self.successor)
 
 	def updateFinger(self):
 		pass
