@@ -152,10 +152,11 @@ class Node:
 			if query[0].decode() == "upload":
 				# hash = query[1].decode()
 				# bt = query[2]
-				sha256 = self.response[1]
-				newName = self.loc+'/'+sha256.decode()
+				sha256 = query[1]
+				newName = self.loc+'/'+query[1].decode()
 				with open(newName,"xb") as f:
-					f.write(response[2])
+					f.write(query[2])
+				print("file saved")
 
 			if query[0].decode() == "download":
 				with open(newName, "rb") as f:			
@@ -164,7 +165,7 @@ class Node:
 					print("prueba1")
 					socket.send_multipart([bt])
 					print("prueba2")
-				res = socket.recv()
+				#res = socket.recv()
 				if (res == "OK"):
 					print("send successfully!!")
 		
