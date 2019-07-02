@@ -22,17 +22,16 @@ m = 256
 
 class Node:
 	def __init__(self):
-		"""
+		print("Hello new node")
 		self.mac = str(uuid.getnode())
-		print(int(self.mac, 10))
 		self.hash_calc = hashlib.sha256()
-		self.hash_calc.update(int(self.mac, 10))
+		self.hash_calc.update(str(int(self.mac, 10)).encode())
 		print(self.hash_calc)
-		"""
 
 		#self.hash = str(hash_calc.hexdigest())
 		#self.successor = {}
-	def ident(self):
+
+	def ident(self): 
 		x = ""
 		s = self.mac.split(":")
 		for i in s:
@@ -49,7 +48,7 @@ class Node:
 		print("\tpython3 node.py ip port<node> ip:port<ring> <folderName> \n")
 		print("Example: python3 node.py 192.168.0.0 8001 127.255.255.0:8080 folder")
 
-		if len(sys.argv) != 6:
+		if len(sys.argv) != 5:
 			print("\n-- Error --\n")
 			print("\tInvalid sintax")
 			exit()
@@ -62,7 +61,7 @@ class Node:
 		self.first=False
 
 		#para pruebas locales
-		self.mac = sys.argv[5]
+		#self.mac = sys.argv[5]
 		
 		Node.ident()
 
@@ -88,22 +87,24 @@ class Node:
 		else:
 			print ("Connecting to web now ...")
 			socket_s.connect("tcp://" + self.web)
+
 			socket_s.send_multipart([b"add_successor",self.hash_calc.encode(),ip.encode(),port.encode()])
 			response = socket_s.recv_multipart()
 			while response[0].decode() == "this way":
 				other_socket = eval(response[1].decode())
 				print("Asking again to "+other_socket.get("hash")+":( ")
 				response = ""
-				#socket_s.connect("tcp://" + )
-				#socket_s.send_multipart([b"add_successor", self.hash.encode(), ip.encode(), port.encode()])
+				socket_s.connect("tcp://" + other_socket.get("ip"))
+				socket_s.send_multipart([b"add_successor", self.hash.encode(), ip.encode(), port.encode()])
+				response = socket_s.recv_multipart()
+				print(response)
+				break
 
 			if response[0].decode() == "welcome":
 				print("I know my place =D")
-				if response[1].decode() == "successor":
-					print("I am him successor")
-					
-					rta = socket_s.recv_multipart()
-					print(rta)
+				response[1].decode()
+				rta = socket_s.recv_multipart()
+				print(rta)
 
 				#socket_s.send_multipart([b"set_successor",self.hash.encode(),ip.encode(),port.encode()])
 				#recv_successor = self
@@ -121,14 +122,14 @@ class Node:
 				if x < z:
 					if x < y or y < z:
 						print ("this node comes here")
-						self.socket.send_multipart([self.successor.get("hash").encode(),self.successor.get("ip")])
+						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip")])
 					else:
 						print ("this node is lose ")
 						self.socket.send_multipart([b"this way",str(self.successor).encode()])
 				if x > z:
 					if x < y and y < z :
 						print ("this node comes here")
-						self.socket.send_multipart([self.successor.get("hash").encode(),self.successor.get("ip")])
+						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip")])
 					else:
 						print ("this node is lose ")
 						self.socket.send_multipart([b"this way",str(self.successor).encode()])
@@ -148,9 +149,27 @@ class Node:
 				print("new successor saved: ")
 				print(self.successor)
 
-	def updateFinger(self):
-		pass
+			if query[0].decode() == "upload":
+				# hash = query[1].decode()
+				# bt = query[2]
+				sha256 = self.response[1]
+				newName = self.loc+'/'+sha256.decode()
+				with open(newName,"xb") as f:
+					f.write(response[2])
 
+			if query[0].decode() == "download":
+				with open(newName, "rb") as f:			
+					print("Downloading part {}".format(filename))
+					bt = f.read(sizePart)
+					print("prueba1")
+					socket.send_multipart([bt])
+					print("prueba2")
+				res = socket.recv()
+				if (res == "OK"):
+					print("send successfully!!")
+		
+				print("Downloaded!!")
+	#socket.send(b"OK")
 """
 	def connect(self):
 		contextP = zmq.Context()
