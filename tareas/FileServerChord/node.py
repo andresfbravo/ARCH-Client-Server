@@ -90,9 +90,9 @@ class Node:
 			socket_s.send_multipart([b"add_successor",self.hash_calc.encode(),ip.encode(),port.encode()])
 			response = socket_s.recv_multipart()
 			while response[0].decode() == "this way":
-				print("Asking again to "+response[1]+":( ")
-				socket_s.connect("tcp://" + response[1])
-				socket_s.send_multipart([b"add_successor", self.hash.encode(), ip.encode(), port.encode()])
+				print("Asking again to "+response[1].decode()+":( ")
+				socket_s.connect("tcp://" + response[1].decode())
+				socket_s.send_multipart([b"add_successor", self.hash_calc.encode(), ip.encode(), port.encode()])
 				response = ""
 				response = socket_s.recv_multipart()
 				print(response)
@@ -101,7 +101,7 @@ class Node:
 				print("I know my place =D")
 				self.successor={"hash":response[1].decode(),"ip":response[2].decode()}
 				print(self.successor)
-				
+
 		while True:
 			print("\nListening in "+ip+":"+port+" ...")
 			query = self.socket.recv_multipart()
@@ -116,13 +116,17 @@ class Node:
 					if x < y and y < z :
 						print ("this node comes here")
 						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip")])
+						self.successor={"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
+						print(self.successor)
 					else:
 						print ("this node is lose ")
 						self.socket.send_multipart([b"this way",str(self.successor.get("ip")).encode()])
 				if x < z:
 					if x < y or y < z:
 						print ("this node comes here")
-						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip")])
+						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip").encode()])
+						self.successor={"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
+						print(self.successor)
 					else:
 						print ("this node is lose ")
 						self.socket.send_multipart([b"this way",str(self.successor.get("ip")).encode()])
