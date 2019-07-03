@@ -87,7 +87,6 @@ class Node:
 		else:
 			print ("Connecting to web now ...")
 			socket_s.connect("tcp://" + self.web)
-
 			socket_s.send_multipart([b"add_successor",self.hash_calc.encode(),ip.encode(),port.encode()])
 			response = socket_s.recv_multipart()
 			while response[0].decode() == "this way":
@@ -100,13 +99,9 @@ class Node:
 
 			if response[0].decode() == "welcome":
 				print("I know my place =D")
-				response[1].decode()
-				rta = socket_s.recv_multipart()
-				print(rta)
-
-				#socket_s.send_multipart([b"set_successor",self.hash.encode(),ip.encode(),port.encode()])
-				#recv_successor = self
-
+				self.successor={"hash":response[1].decode(),"ip":response[2].decode()}
+				print(self.successor)
+				
 		while True:
 			print("\nListening in "+ip+":"+port+" ...")
 			query = self.socket.recv_multipart()
@@ -137,9 +132,10 @@ class Node:
 				x=self.hash_calc # mi hash
 				y=query[1].decode() # hash del que habla
 				print ("this node is my first partner ")
-				self.socket.send_multipart([self.successor.get("hash").encode(),self.successor.get("ip").encode()])
+				self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip").encode()])
 				self.successor={"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
 				self.first=False
+
 
 			if query[0].decode() == "set_successor":
 				self.socket.send_multipart([self.successor.get("hash").encode(),self.successor.get("ip")])
