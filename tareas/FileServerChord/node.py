@@ -140,14 +140,12 @@ class Node:
 				self.socket.send_multipart([self.successor.get("hash").encode(),self.successor.get("ip").encode()])
 				self.successor={"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
 				self.first=False
-				query=[]
 
 			if query[0].decode() == "set_successor":
 				self.socket.send_multipart([self.successor.get("hash").encode(),self.successor.get("ip")])
 				self.successor = {"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
 				print("new successor saved: ")
 				print(self.successor)
-				query=[]
 
 			if query[0].decode() == "upload":
 				x=self.hash_calc # mi hash
@@ -178,7 +176,6 @@ class Node:
 					else:
 						print ("this node is lose ")
 						self.socket.send_multipart([b"NOT",str(self.successor.get("ip")).encode()])
-				query=[]
 
 				# hash = query[1].decode()
 				# bt = query[2]
