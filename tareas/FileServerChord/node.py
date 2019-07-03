@@ -120,7 +120,7 @@ class Node:
 						print(self.successor)
 					else:
 						print ("this node is lose ")
-						self.socket.send_multipart([b"this way",str(self.successor.get("ip")).encode()])
+						self.socket.send_multipart([b"this way",self.successor.get("ip").encode()])
 				if x < z:
 					if x < y or y < z:
 						print ("this node comes here")
@@ -129,7 +129,7 @@ class Node:
 						print(self.successor)
 					else:
 						print ("this node is lose ")
-						self.socket.send_multipart([b"this way",str(self.successor.get("ip")).encode()])
+						self.socket.send_multipart([b"this way",self.successor.get("ip").encode()])
 
 			if query[0].decode() == "add_successor" and self.first == True:
 				print("Ask for first node\n"+query[1].decode()+"\nip "+query[2].decode()+":"+query[3].decode()+" O.O")
