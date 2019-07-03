@@ -124,7 +124,7 @@ class Node:
 				if x < z:
 					if x < y or y < z:
 						print ("this node comes here")
-						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip").encode()])
+						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),str(self.successor.get("ip")).encode()])
 						self.successor={"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
 						print(self.successor)
 					else:
