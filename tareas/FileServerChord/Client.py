@@ -12,7 +12,7 @@ import sys
 sizePart = 1024*1024*10
 ip="localhost"
 PORT = "9000"
-red = "localhost:8000"
+red = "192.168.8.238:8001"
 sizeBuf = 65536
 
 
@@ -34,9 +34,9 @@ class Client:
 		self.route = sys.argv[2].encode()
 		self.filename = sys.argv[3].encode()
 
-		context = zmq.Context()
-		self.socket_node = context.socket(zmq.REQ)
-		self.socket_node.connect("tcp://"+"red")
+		self.context = zmq.Context()
+		self.socket_node = self.context.socket(zmq.REQ)
+		self.socket_node.connect("tcp://"+red)
 		self.node_negotiations()
 
 	def node_negotiations(self):
@@ -59,10 +59,13 @@ class Client:
 				self.parts.append(sha_part.hexdigest())
 
 		#crea .json con hash de archivo, hash de archivo como llave.
-		register={self.get_hash().decode():{"parts":self.parts}}
+		hash_file = self.get_hash().decode()
+		register={hash_file:{"parts":self.parts}}
+		print(register)
+		print(hash_file)
 		#crea el archivo para la descarga
-		with open(str(self.get_hash.decode()+".json"),"x") as f: 	
-			json.dump(self.register,f)
+		with open(str(hash_file+".json"),"x") as f: 	
+			json.dump(register,f)
 
 		#ejecuta upload_part con la direccion entregada por find
 		self.upload_part()
@@ -83,19 +86,32 @@ class Client:
 				#hace upload de la parte directamente en el nodo para verificar si lo acepta o no
 				self.socket_node.send_multipart([self.operation, self.parts[part].encode(), bt])
 				response = self.socket_node.recv_multipart()
-
 				if response[0].decode()=="OK":
 					print("Part send succesfully\n")
-					self.socket_node.close()
+					#self.socket_node.close()
 					if len(bt) < sizePart:
 						finished = True
 					part+=1
 				elif response[0].decode()=="NOT":
 					#change the socket
+					print(response[1].decode())
 					self.socket_node.close()
-					self.socket_node = context.socket(zmq.REQ)
+					self.socket_node = self.context.socket(zmq.REQ)
 					self.socket_node.connect("tcp://"+response[1].decode())
 
+	def get_hash(self):
+		if self.operation.decode() == "upload":
+			with open(self.route.decode()+self.filename.decode(), 'rb') as f :
+				sha256 = hashlib.sha256()
+				while True:
+					file = f.read(sizeBuf)
+					if not file :
+						break
+					sha256.update(file)
+			hashfile = sha256.hexdigest().encode()
+			return hashfile
+		elif self.operation.decode() == "download":
+			return self.filename
 
 	def download(self):
 
@@ -136,5 +152,5 @@ class Client:
 
 
 if __name__ == '__main__':
-	Cliente = Cliente()
+	Cliente = Client()
 	Cliente.start()
