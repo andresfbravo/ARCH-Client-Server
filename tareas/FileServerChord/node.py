@@ -28,12 +28,12 @@ class Node:
 		#pruebas en red
 		self.hash_calc = hashlib.sha256()
 		self.hash_calc.update(str(int(self.mac, 10)).encode()) 
-		print(self.hash_calc)
 		"""
 		#para pruebas locales
 		self.hash_calc = hashlib.sha256()
 		self.hash_calc.update(str(random.randrange(0, 101, 2)).encode()) 
 		self.hash_calc = self.hash_calc.hexdigest()
+		print(self.hash_calc)
 
 	def ident(self): 
 		x = ""
@@ -88,6 +88,7 @@ class Node:
 			print("i am the first u.u")
 			self.first = True
 			self.successor = {"hash":self.hash_calc,"ip":str(ip+":"+port)}
+			print(self.successor)
 		else:
 			print ("Connecting to web now ...")
 			socket_s.connect("tcp://" + self.web)
@@ -141,16 +142,12 @@ class Node:
 				x=self.hash_calc # mi hash
 				y=query[1].decode() # hash del que habla
 				print ("this node is my first partner ")
-				self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip").encode()])
-				self.successor={"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
-				self.first=False
-
-
-			if query[0].decode() == "set_successor":
-				self.socket.send_multipart([self.successor.get("hash").encode(),self.successor.get("ip")])
-				self.successor = {"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
-				print("new successor saved: ")
 				print(self.successor)
+				self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip").encode()])
+				self.successor.update({"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())})
+				print("ahora es mi sucesor")
+				print(self.successor)
+				self.first=False
 
 			if query[0].decode() == "upload":
 				x=self.hash_calc # mi hash
