@@ -154,8 +154,8 @@ class Node:
 				y=query[1].decode() # hash de la parte
 				z=self.successor.get("hash") # mi sucesor
 				print(y+"<"+x+"\n"+y+">"+z)
-				if x < z:
-					if x < y or y < z:
+				if x > z:
+					if x < y and y < z :
 						print ("comes here")
 						sha256 = query[1]
 						newName = self.loc+'/'+query[1].decode()
@@ -166,8 +166,8 @@ class Node:
 					else:
 						print ("this node is lose ")
 						self.socket.send_multipart([b"NOT",str(self.successor.get("ip")).encode()])
-				elif x > z:
-					if x < y and y < z :
+				if x < z:
+					if x < y or y < z:
 						print ("comes here")
 						sha256 = query[1]
 						newName = self.loc+'/'+query[1].decode()
