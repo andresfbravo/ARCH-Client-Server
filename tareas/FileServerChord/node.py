@@ -4,7 +4,7 @@ import json
 import os
 import hashlib
 import re, uuid
-
+import random
 """
 Registro=
 	{
@@ -24,16 +24,20 @@ class Node:
 	def __init__(self):
 		print("Hello new node")
 		self.mac = str(uuid.getnode())
+		"""
+		#pruebas en red
 		self.hash_calc = hashlib.sha256()
-		self.hash_calc.update(str(int(self.mac, 10)).encode())
+		self.hash_calc.update(str(int(self.mac, 10)).encode()) 
 		print(self.hash_calc)
-
-		#self.hash = str(hash_calc.hexdigest())
-		#self.successor = {}
+		"""
+		#para pruebas locales
+		self.hash_calc = hashlib.sha256()
+		self.hash_calc.update(str(random.randrange(0, 101, 2)).encode()) 
+		self.hash_calc = self.hash_calc.hexdigest()
 
 	def ident(self): 
 		x = ""
-		s = self.mac.split(":")
+		s = self.mac.split(":") 
 		for i in s:
 			x = x + i
 		print(x)
@@ -45,7 +49,7 @@ class Node:
 	def Start(self):
 		print("\n-- Welcome to UltraServerChord¢2019 --\n")
 		print("To initialize Chord provide the your ip,port and then a node ip:port for connect")
-		print("\tpython3 node.py ip port<node> ip:port<ring> <folderName> \n")
+		print("\tpython3 node.py ip<node> port<node> ip:port<ring> <folderName> \n")
 		print("Example: python3 node.py 192.168.0.0 8001 127.255.255.0:8080 folder")
 
 		if len(sys.argv) != 5:
@@ -63,7 +67,7 @@ class Node:
 		#para pruebas locales
 		#self.mac = sys.argv[5]
 		
-		Node.ident()
+		#Node.ident()
 
 		if os.path.isdir('./'+self.loc) == False:
 			print("\nThis folder doesn't exist ")
@@ -83,7 +87,7 @@ class Node:
 		if self.web == str(ip+":"+port):
 			print("i am the first u.u")
 			self.first = True
-			self.successor = {"hash":self.hash_calc,"ip":str(ip+port)}
+			self.successor = {"hash":self.hash_calc,"ip":str(ip+":"+port)}
 		else:
 			print ("Connecting to web now ...")
 			socket_s.connect("tcp://" + self.web)
@@ -115,8 +119,9 @@ class Node:
 				if x > z:
 					if x < y and y < z :
 						print ("this node comes here")
+						print (self.successor.get("ip"))
 						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip")])
-						self.successor={"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
+						self.successor.update({"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())})
 						print(self.successor)
 					else:
 						print ("this node is lose ")
@@ -125,7 +130,7 @@ class Node:
 					if x < y or y < z:
 						print ("this node comes here")
 						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),str(self.successor.get("ip")).encode()])
-						self.successor={"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())}
+						self.successor.update({"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())})
 						print(self.successor)
 					else:
 						print ("this node is lose ")
