@@ -25,19 +25,17 @@ m = 256
 class Node:
 	def __init__(self):
 		print("Hello new node")
-		self.mac = str(uuid.getnode())
-		"""
-		#pruebas en red
-		self.hash_calc = hashlib.sha256()
-		self.hash_calc.update(str(int(self.mac, 10)).encode()) 
 		"""
 		#para pruebas locales
 		self.hash_calc = hashlib.sha256()
 		self.hash_calc.update(str(random.randrange(0, 101, 2)).encode()) 
 		self.hash_calc = self.hash_calc.hexdigest()
 		print(self.hash_calc)
+		"""
+		self.ident()
 
 	def ident(self): 
+		self.mac = str(uuid.getnode())
 		x = ""
 		s = self.mac.split(":") 
 		for i in s:
@@ -67,10 +65,9 @@ class Node:
 		z=self.successor.get("hash") # mi sucesor
 		for i in files:
 			if self.find(y,i,z):
-				print("va para alla ",i)
 				sharelist.append(i)
 				count-=1
-		print("quedan "+str(count)+" archivos, se envian "+str(len(files)-count) )
+		print("Se quedan "+str(count)+" archivos, se envian "+str(len(files)-count) )
 		return str(sharelist).encode()
 
 	def Start(self):
@@ -94,7 +91,6 @@ class Node:
 		#para pruebas locales
 		#self.mac = sys.argv[5]
 		
-		#Node.ident()
 
 		if os.path.isdir('./'+self.loc) == False:
 			print("\nThis folder doesn't exist ")
@@ -135,8 +131,8 @@ class Node:
 				self.successor={"hash":response[1].decode(),"ip":response[2].decode()}
 				print("my succesor is ",self.successor)
 				files = eval(response[3].decode())
+				print(len(files)," parts for discharge")
 				for i in files:
-					print("Discharging ",i)
 					socket_s.send_multipart([b"discharge",i.encode()])
 					response = socket_s.recv_multipart()
 					with open(self.loc+'/'+i,"xb") as f:
@@ -157,10 +153,10 @@ class Node:
 					print ("this node comes here")
 					self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),str(self.successor.get("ip")).encode(),self.share(query[1].decode())])
 					self.successor.update({"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())})
-					print("ahora es mi sucesor")
+					print("now is my successor")
 					print(self.successor)
 				else:
-					print ("this node is lose ")
+					print ("redirection node ")
 					self.socket.send_multipart([b"this way",self.successor.get("ip").encode()])
 			
 			if query[0].decode() == "add_successor" and self.first == True:
@@ -170,7 +166,7 @@ class Node:
 				print ("this node is my first partner ")
 				self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip").encode(),self.share(query[1].decode())])
 				self.successor.update({"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())})
-				print("ahora es mi sucesor")
+				print("now is my successor")
 				print(self.successor)
 				self.first=False
 
@@ -198,7 +194,7 @@ class Node:
 					print("file saved")
 					self.socket.send_multipart([b"OK"])
 				else:
-					print ("this client is lose ")
+					print ("redirection client")
 					self.socket.send_multipart([b"NOT",self.successor.get("ip").encode()])
 
 			if query[0].decode() == "download":
@@ -215,7 +211,7 @@ class Node:
 					self.socket.send_multipart([b"OK",bt])
 					print("file sended")
 				else:
-					print ("this client is lose ")
+					print ("redirection client")
 					self.socket.send_multipart([b"NOT",self.successor.get("ip").encode()])
 			
 	#socket.send(b"OK")
