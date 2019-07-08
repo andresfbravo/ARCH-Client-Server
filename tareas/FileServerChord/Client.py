@@ -122,40 +122,42 @@ class Client:
 
 	def download(self):
 
-		reg_down = self.filename.decode()
+		with open(self.filename.decode()) as f:
+			reg_down = json.load(f)
+
 		dataName = reg_down.get("filename")
 		print(reg_down)
 		parts = reg_down.get("parts")
 		print("Conecting to Node ...")
 		finished = False
 
-		for i in range(0,len(parts)):
+		
 		#while not finished:
 			#self.socket_node.send_multipart([self.operation,self.])
 			#self.socket_node.connect("tcp://"+servers[i])
-			while not finished:
-				self.socket_node.send_multipart([self.operation,parts[i].encode()])
-				response = self.socket_node.recv_multipart()
+		while not finished:
+			self.socket_node.send_multipart([self.operation,parts[i].encode()])
+			response = self.socket_node.recv_multipart()
 
-				if response[0].decode()=="OK":
-					print("Part download succesfully\n")
-					with open(self.route.decode()+"/"+dataName, "ab") as f:
-						#self.socket_node = context.socket(zmq.REQ)
-						#self.socket_node.connect("tcp://"+servers[i])
-						f.seek(i*sizePart)
-						f.write(response[1])
-						self.socket_node.close()
-						print("Part download succesfully\n")
-					#self.socket_node.send(b"OK")
-					#self.socket_node.close()
-					if len(bt) < sizePart:
-						finished = True
-					part+=1
-				elif response[0].decode()=="NOT":
-					#change the socket
+			if response[0].decode()=="OK":
+				print("Part download succesfully\n")
+				with open(self.route.decode()+"/"+dataName, "ab") as f:
+					#self.socket_node = context.socket(zmq.REQ)
+					#self.socket_node.connect("tcp://"+servers[i])
+					f.seek(i*sizePart)
+					f.write(response[1])
 					self.socket_node.close()
-					self.socket_node = context.socket(zmq.REQ)
-					self.socket_node.connect("tcp://"+response[1].decode())
+					print("Part download succesfully\n")
+				#self.socket_node.send(b"OK")
+				#self.socket_node.close()
+				if len(bt) < sizePart:
+					finished = True
+				part+=1
+			elif response[0].decode()=="NOT":
+				#change the socket
+				self.socket_node.close()
+				self.socket_node = context.socket(zmq.REQ)
+				self.socket_node.connect("tcp://"+response[1].decode())
 
 
 if __name__ == '__main__':
