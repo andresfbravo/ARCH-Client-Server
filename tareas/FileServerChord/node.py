@@ -117,21 +117,23 @@ class Node:
 				y=query[1].decode() # hash del que habla
 				z=self.successor.get("hash") # mi sucesor
 				print(y+"<"+x+"::"+y+">"+z)
-				if x > z:
-					if x < y and y < z :
+				if x < z:
+					if x < y and y < z:
 						print ("this node comes here")
-						print (self.successor.get("ip"))
-						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip")])
+						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),str(self.successor.get("ip")).encode()])
 						self.successor.update({"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())})
+						print("ahora es mi sucesor")
 						print(self.successor)
 					else:
 						print ("this node is lose ")
 						self.socket.send_multipart([b"this way",self.successor.get("ip").encode()])
-				if x < z:
-					if x < y or y < z:
+				if x > z:
+					if x < y or y < z :
 						print ("this node comes here")
-						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),str(self.successor.get("ip")).encode()])
+						print (self.successor.get("ip"))
+						self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip")])
 						self.successor.update({"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())})
+						print("ahora es mi sucesor")
 						print(self.successor)
 					else:
 						print ("this node is lose ")
@@ -142,7 +144,6 @@ class Node:
 				x=self.hash_calc # mi hash
 				y=query[1].decode() # hash del que habla
 				print ("this node is my first partner ")
-				print(self.successor)
 				self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip").encode()])
 				self.successor.update({"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())})
 				print("ahora es mi sucesor")
@@ -150,24 +151,15 @@ class Node:
 				self.first=False
 
 			if query[0].decode() == "upload":
+				print("new upload request ",query[1].decode())
 				x=self.hash_calc # mi hash
 				y=query[1].decode() # hash de la parte
 				z=self.successor.get("hash") # mi sucesor
-				print(y+"<"+x+"\n"+y+">"+z)
-				if x > z:
-					if x < y and y < z :
-						print ("comes here")
-						sha256 = query[1]
-						newName = self.loc+'/'+query[1].decode()
-						with open(newName,"xb") as f:
-							f.write(query[2])
-						print("file saved")
-						self.socket.send_multipart([b"OK"])
-					else:
-						print ("this node is lose ")
-						self.socket.send_multipart([b"NOT",str(self.successor.get("ip")).encode()])
+				#print(y+"<"+x+"\n"+y+">"+z)
+				print("mi sucesor es ")
+				print(self.successor)
 				if x < z:
-					if x < y or y < z:
+					if x < y and y < z:
 						print ("comes here")
 						sha256 = query[1]
 						newName = self.loc+'/'+query[1].decode()
@@ -176,8 +168,20 @@ class Node:
 						print("file saved")
 						self.socket.send_multipart([b"OK"])
 					else:
-						print ("this node is lose ")
-						self.socket.send_multipart([b"NOT",str(self.successor.get("ip")).encode()])
+						print ("this client is lose ")
+						self.socket.send_multipart([b"NOT",self.successor.get("ip").encode()])
+				if x > z:
+					if x < y or y < z :
+						print ("comes here")
+						sha256 = query[1]
+						newName = self.loc+'/'+query[1].decode()
+						with open(newName,"xb") as f:
+							f.write(query[2])
+						print("file saved")
+						self.socket.send_multipart([b"OK"])
+					else:
+						print ("this client is lose ")
+						self.socket.send_multipart([b"NOT",self.successor.get("ip").encode()])
 
 				# hash = query[1].decode()
 				# bt = query[2]
