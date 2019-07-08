@@ -5,6 +5,8 @@ import os
 import hashlib
 import re, uuid
 import random
+from os import listdir
+
 """
 Registro=
 	{
@@ -58,6 +60,19 @@ class Node:
 			else:
 				return False
 
+	def share(self, y):
+		files = listdir(self.loc)
+		sharelist = []
+		count = len(files)
+		z=self.successor.get("hash") # mi sucesor
+		for i in files:
+			if self.find(y,i,z):
+				print("va para alla ",i)
+				sharelist.append(i)
+				count-=1
+		print("quedan "+str(count)+" archivos, se envian "+str(len(files)-count) )
+		return str(sharelist).encode()
+
 	def Start(self):
 		print("\n-- Welcome to UltraServerChord¢2019 --\n")
 		print("To initialize Chord provide the your ip,port and then a node ip:port for connect")
@@ -93,7 +108,6 @@ class Node:
 		self.socket.bind("tcp://*:"+ port)
 
 		# there is calling other nodes
-		socket_s = context.socket(zmq.REQ) # socket al sucesor
 
 		# if the web direction is the same of my ip address that means it's the first node
 		if self.web == str(ip+":"+port):
@@ -103,21 +117,31 @@ class Node:
 			print(self.successor)
 		else:
 			print ("Connecting to web now ...")
+			socket_s = context.socket(zmq.REQ) # socket al sucesor
 			socket_s.connect("tcp://" + self.web)
 			socket_s.send_multipart([b"add_successor",self.hash_calc.encode(),ip.encode(),port.encode()])
 			response = socket_s.recv_multipart()
 			while response[0].decode() == "this way":
-				print("Asking again to "+response[1].decode()+":( ")
+				print("Ask again to "+response[1].decode()+":( ")
+				socket_s.close()
+				socket_s = context.socket(zmq.REQ) # socket al sucesor
 				socket_s.connect("tcp://" + response[1].decode())
 				socket_s.send_multipart([b"add_successor", self.hash_calc.encode(), ip.encode(), port.encode()])
 				response = ""
 				response = socket_s.recv_multipart()
-				print(response)
 
 			if response[0].decode() == "welcome":
 				print("I know my place =D")
 				self.successor={"hash":response[1].decode(),"ip":response[2].decode()}
-				print(self.successor)
+				print("my succesor is ",self.successor)
+				files = eval(response[3].decode())
+				for i in files:
+					print("Discharging ",i)
+					socket_s.send_multipart([b"discharge",i.encode()])
+					response = socket_s.recv_multipart()
+					with open(self.loc+'/'+i,"xb") as f:
+						f.write(response[1])
+					print(response[0].decode())
 
 		while True:
 			print("\nListening in "+ip+":"+port+" ...")
@@ -128,10 +152,10 @@ class Node:
 				x=self.hash_calc # mi hash
 				y=query[1].decode() # hash del que habla
 				z=self.successor.get("hash") # mi sucesor
-				print(y+"<"+x+"::"+y+">"+z)
+				#print(y+"<"+x+"::"+y+">"+z)
 				if self.find(x,y,z):
 					print ("this node comes here")
-					self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),str(self.successor.get("ip")).encode()])
+					self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),str(self.successor.get("ip")).encode(),self.share(query[1].decode())])
 					self.successor.update({"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())})
 					print("ahora es mi sucesor")
 					print(self.successor)
@@ -144,20 +168,27 @@ class Node:
 				x=self.hash_calc # mi hash
 				y=query[1].decode() # hash del que habla
 				print ("this node is my first partner ")
-				self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip").encode()])
+				self.socket.send_multipart([b"welcome",self.successor.get("hash").encode(),self.successor.get("ip").encode(),self.share(query[1].decode())])
 				self.successor.update({"hash":query[1].decode(),"ip":str(query[2].decode()+":"+query[3].decode())})
 				print("ahora es mi sucesor")
 				print(self.successor)
 				self.first=False
 
+			if query[0].decode() == "discharge":
+				print("new discharge request ",query[1].decode())
+				newName = self.loc+'/'+query[1].decode()
+				with open(newName, "rb") as f:			
+					bt = f.read(sizePart)
+				self.socket.send_multipart([b"OK",bt])
+				os.system("rm -r "+newName)
+				print("file discharged")
+			
 			if query[0].decode() == "upload":
 				print("new upload request ",query[1].decode())
 				x=self.hash_calc # mi hash
 				y=query[1].decode() # hash de la parte
 				z=self.successor.get("hash") # mi sucesor
 				#print(y+"<"+x+"\n"+y+">"+z)
-				print("mi sucesor es ")
-				print(self.successor)
 				if self.find(x,y,z):
 					print ("comes here")
 					sha256 = query[1]

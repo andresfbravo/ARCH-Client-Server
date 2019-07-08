@@ -88,9 +88,7 @@ class Client:
 				self.socket_node.send_multipart([self.operation, self.parts[part].encode(), bt])
 				response = self.socket_node.recv_multipart()
 				if response[0].decode()=="OK":
-					print("Part send succesfully\n")
-					print("The direction ip of Node: ",self.red)
-					#self.socket_node.close()
+					print("Part send succesfully to ",self.red)
 					if len(bt) < sizePart:
 						finished = True
 					part+=1
@@ -98,7 +96,7 @@ class Client:
 				elif response[0].decode()=="NOT":
 					#change the socket
 					self.red = response[1].decode()
-					print(response[1].decode())
+					print("Asking again to",response[1].decode())
 				self.socket_node.close()
 				self.socket_node = self.context.socket(zmq.REQ)
 				self.socket_node.connect("tcp://"+self.red)
