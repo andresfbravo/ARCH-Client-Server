@@ -62,7 +62,7 @@ class Client:
 
 		#crea .json con hash de archivo, hash de archivo como llave.
 		hash_file = self.get_hash().decode()
-		register={hash_file:{"filename":self.filename.decode(),"parts":self.parts}}
+		register={"filename":self.filename.decode(),"parts":self.parts}
 		print(register)
 		print(hash_file)
 		#crea el archivo para la descarga
@@ -80,13 +80,10 @@ class Client:
 			finished = False
 			part = 0
 			while not finished:
+				print("Uploading part {}".format(part+1))
 				f.seek(part*sizePart)
 				bt = f.read(sizePart)
 
-				if len(bt) < sizePart:
-					finished = True
-
-				print("Uploading part {}".format(part+1))
 				#hace upload de la parte directamente en el nodo para verificar si lo acepta o no
 				self.socket_node.send_multipart([self.operation, self.parts[part].encode(), bt])
 				response = self.socket_node.recv_multipart()
@@ -121,8 +118,9 @@ class Client:
 			return self.filename
 
 	def download(self):
-
-		with open(self.filename.decode()) as f:
+		newName = self.route.decode()+'/'+self.filename.decode()
+		print("searching for ",newName)
+		with open(newName) as f:
 			reg_down = json.load(f)
 
 		dataName = reg_down.get("filename")
@@ -130,33 +128,25 @@ class Client:
 		parts = reg_down.get("parts")
 		print("Conecting to Node ...")
 		finished = False
-
+		part=0
 		
 		#while not finished:
 			#self.socket_node.send_multipart([self.operation,self.])
 			#self.socket_node.connect("tcp://"+servers[i])
-		while not finished:
-			self.socket_node.send_multipart([self.operation,parts[i].encode()])
+		while part < len(parts):
+			self.socket_node.send_multipart([self.operation,parts[part].encode()])
 			response = self.socket_node.recv_multipart()
-
 			if response[0].decode()=="OK":
-				print("Part download succesfully\n")
 				with open(self.route.decode()+"/"+dataName, "ab") as f:
-					#self.socket_node = context.socket(zmq.REQ)
-					#self.socket_node.connect("tcp://"+servers[i])
-					f.seek(i*sizePart)
+					f.seek(part*sizePart)
 					f.write(response[1])
-					self.socket_node.close()
-					print("Part download succesfully\n")
-				#self.socket_node.send(b"OK")
-				#self.socket_node.close()
-				if len(bt) < sizePart:
-					finished = True
 				part+=1
+				print("Part download succesfully\n")
+
 			elif response[0].decode()=="NOT":
 				#change the socket
 				self.socket_node.close()
-				self.socket_node = context.socket(zmq.REQ)
+				self.socket_node = self.context.socket(zmq.REQ)
 				self.socket_node.connect("tcp://"+response[1].decode())
 
 
