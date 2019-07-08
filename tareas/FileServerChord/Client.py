@@ -131,6 +131,8 @@ class Client:
 		#while not finished:
 			#self.socket_node.send_multipart([self.operation,self.])
 			#self.socket_node.connect("tcp://"+servers[i])
+		parameter = "rm "+dataName
+		os.system(parameter)
 		while part < len(parts):
 			self.socket_node.send_multipart([self.operation,parts[part].encode()])
 			response = self.socket_node.recv_multipart()
