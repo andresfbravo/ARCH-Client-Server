@@ -24,7 +24,7 @@ double squared_l2_distance(Point first, Point second) {
 	return ((first.x - second.x)*(first.x - second.x)) + ((first.y - second.y)*(first.y - second.y));
 }
 
-DataFrame k_means(const DataFrame& data, unsigned k, unsigned number_of_iterations) {//, const DataFrame& centroides
+DataFrame k_means(const DataFrame& data, unsigned k, unsigned number_of_iterations, const DataFrame& cluster) {//, const DataFrame& centroides
 
 
   static random_device seed;
@@ -34,12 +34,10 @@ DataFrame k_means(const DataFrame& data, unsigned k, unsigned number_of_iteratio
 
   // Pick centroids as random points from the dataset.
   DataFrame means(k);
-  
+  /* Genere cluster with aleatory points
   for (Point& cluster : means) {
     cluster = data[indices(random_number_generator)];
-  }
-
-  //cluster = centroides;
+  }*/
 
   vector<unsigned int> assignments(data.size());
   for (unsigned int iteration = 0; iteration < number_of_iterations; ++iteration) {
@@ -81,8 +79,8 @@ DataFrame k_means(const DataFrame& data, unsigned k, unsigned number_of_iteratio
 }
 
 int main(int argc, const char* argv[]) {
-  if (argc < 2) {
-    cerr << "excecute: kmeans.cpp <data-file> <k> [runs]"
+  if (argc < 3) {
+    cerr << "excecute: kmeans.cpp <data-file> <k> [runs] <data-cluster>"
               << endl;
     exit(EXIT_FAILURE);
   }
@@ -107,27 +105,32 @@ int main(int argc, const char* argv[]) {
     data.push_back(point);
   }
 //leo argumentos los centroides iniciales
-  /*
+  
   DataFrame centroides;
-  ifstream stream(argv[5]);
-  if (!stream) {
-    cerr << "Could not open file: " << argv[5] << endl;
+  ifstream stream2(argv[4]);
+  if (!stream2) {
+    cerr << "Could not open file: " << argv[4] << endl;
     exit(EXIT_FAILURE);
   }
-  string line;
-  while (getline(stream, line)) {
+  string line2;
+  while (getline(stream2, line2)) {
     Point point;
-    istringstream line_stream(line);
+    istringstream line_stream(line2);
     size_t label;
     line_stream >> point.x >> point.y >> label;
     centroides.push_back(point);
+  }
+  /*
+  for (auto& centro : centroides){
+  	cout<<"estos son los centroides: "<<centroides.get(centro)<<endl;
   }*/
+  //cout<<centroides& [0]<<endl;
 
   DataFrame means;
   double total_elapsed = 0;
   for (int run = 0; run < number_of_runs; ++run) {
     const auto start = chrono::high_resolution_clock::now();
-    means = k_means(data, k, iterations);
+    means = k_means(data, k, iterations,centroides);
     const auto end = chrono::high_resolution_clock::now();
     const auto duration =
         chrono::duration_cast<chrono::duration<double>>(end - start);
