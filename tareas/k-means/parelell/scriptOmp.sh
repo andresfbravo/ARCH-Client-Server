@@ -1,6 +1,6 @@
 #!/bin/bash
 rm o.o
-g++ -std=c++11 kmeans.cpp -o o.o
+g++ -std=c++11 -o o.o -fopenmp kmeansOmp.cpp
 
 #$k="\n"
 

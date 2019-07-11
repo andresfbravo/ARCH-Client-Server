@@ -9,6 +9,7 @@
 #include <sstream>
 #include <vector>
 #include <math.h>
+#include <omp.h>
 
 using namespace std;
 
@@ -21,7 +22,7 @@ using DataFrame = vector<Point>;
 
 double squared_l2_distance(Point first, Point second) {
 
-	return ((first.x - second.x)*(first.x - second.x)) + ((first.y - second.y)*(first.y - second.y));
+	return sqrt(((first.x - second.x)*(first.x - second.x)) + ((first.y - second.y)*(first.y - second.y)));
 }
 
 DataFrame k_means(const DataFrame& data, unsigned k, unsigned number_of_iterations, const DataFrame& cluster) {//, const DataFrame& centroides
@@ -41,11 +42,11 @@ DataFrame k_means(const DataFrame& data, unsigned k, unsigned number_of_iteratio
 
 
   //////////////////////
-  int p= omp_get_num_procs() * 4;//2;
-  #pragma omp parallel for num_threads(p) schedule(dynamic) reduction(+:enlinea)
+  int p= omp_get_num_procs() * 2;//2;
+  //#pragma omp parallel for num_threads(p) schedule(dynamic) reduction(+:enlinea)
   /////////////////////
 
-  
+
   vector<unsigned int> assignments(data.size());
   for (unsigned int iteration = 0; iteration < number_of_iterations; ++iteration) {
     // Find assignments.
@@ -66,6 +67,8 @@ DataFrame k_means(const DataFrame& data, unsigned k, unsigned number_of_iteratio
     // Sum up and count points for each cluster.
     DataFrame new_means(k);
     vector<unsigned int> counts(k, 0);
+    #pragma omp parallel for num_threads(p) schedule(dynamic) //reduction(+:new_means[cluster].x,new_means[cluster].y)
+    //tengo dudas en esto
     for (unsigned int point = 0; point < data.size(); ++point) {
       const unsigned int cluster = assignments[point];
       new_means[cluster].x += data[point].x;
