@@ -143,6 +143,6 @@ int main(int argc, const char* argv[]) {
   }
   cerr << "Took: " << total_elapsed / number_of_runs << "s (" << number_of_runs << " runs)" << endl;
 
-  printStats(7, a, c);
+  printStats(k, a, c);
   return 0;
 }
