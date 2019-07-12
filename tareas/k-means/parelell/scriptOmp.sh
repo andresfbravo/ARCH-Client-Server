@@ -6,6 +6,6 @@ g++ -std=c++11 -o o.o -fopenmp kmeansOmp.cpp
 
 for i in {1..10}
 do
-	./o.o datos.csv 4 50 centroides.csv #>> salida.csv
+	./o.o datos.csv 3 4 50 centroides.csv #>> salida.csv
 	#echo $k
 done
