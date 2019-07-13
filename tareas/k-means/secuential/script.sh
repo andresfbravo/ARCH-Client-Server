@@ -1,7 +1,7 @@
 #!/bin/bash
 rm o.o
 #g++ -std=c++11 -ggdb -o o.o kmeans2.cpp
-g++ -std=c++11 -ggdb -o o.o kmeans2.cc
+g++ -std=c++11 -o o.o kmeans2.cc
 #$k="\n"
 #ejecutable datos dimensiones k numero_corridas centroides iniciales
 
