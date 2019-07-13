@@ -59,22 +59,22 @@ DataFrame readData(string filename, int dim) {
   return data;
 }
 
-pair<DataFrame,vector<size_t>> kmeans(const DataFrame& data, size_t k) {//const DataFrame& cluster
+pair<DataFrame,vector<size_t>> kmeans(const DataFrame& data, size_t k, const DataFrame& cluster) {//const DataFrame& cluster
   size_t iterations = 1000;
   size_t dimensions = data[0].size();
   static random_device seed;
   static mt19937 random_gen(seed());
   uniform_int_distribution<size_t> indices(0, data.size()-1);
 
-  DataFrame means(k);
-  
+  DataFrame means(k,vector<double>(dimensions,0.0));
+  /*
   for(Point& cluster : means) {
     size_t i = indices(random_gen);
     cluster = data[i];
     // cout << "Selected point at position " << i << endl;
     //print(cluster);
   }
-
+  */
 
   vector<size_t> assignments(data.size());
   for (size_t it = 0; it < iterations; it++) {
@@ -133,7 +133,7 @@ int main(int argc, const char* argv[]) {
   double total_elapsed = 0;
   for (int run = 0; run < number_of_runs; ++run) {
     const auto start = chrono::high_resolution_clock::now();
-  	tie(c,a) = kmeans(data, k);
+  	tie(c,a) = kmeans(data, k, centroides);
     const auto end = chrono::high_resolution_clock::now();
     const auto duration =
         chrono::duration_cast<chrono::duration<double>>(end - start);
