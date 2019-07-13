@@ -40,20 +40,18 @@ void printStats(size_t k, const vector<size_t>& assignments, const DataFrame& c)
 }
 
 
-DataFrame readData(string filename) {
+DataFrame readData(string filename, int dim) {
   DataFrame data;
   ifstream input(filename);
   string line;
   while (getline(input, line)) {
     istringstream iss(line);
-    double x, y, z, w;
-    string a;
-    iss >> x >> y >> z >> w >> a;
     Point p;
-    p.push_back(x);
-    p.push_back(y);
-    p.push_back(z);
-    p.push_back(w);
+    double x;
+    for(int i=0;i<dim;i++){
+      iss >> x;
+      p.push_back(x);
+    }
     //cout << x << p[0] << endl;
     data.push_back(p);
   }
@@ -123,11 +121,11 @@ int main(int argc, const char* argv[]) {
               << endl;
     exit(EXIT_FAILURE);
   }
-  DataFrame data = readData(argv[1]);
   const auto dim = atoi(argv[2]);
+  DataFrame data = readData(argv[1], dim);
   auto k = atoi(argv[3]);
   const unsigned int number_of_runs = (argc <= 15) ? atoi(argv[4]) : 15;
-  DataFrame centroides = readData(argv[5]);
+  DataFrame centroides = readData(argv[5], dim);
   
   DataFrame c;
   vector<size_t> a;
