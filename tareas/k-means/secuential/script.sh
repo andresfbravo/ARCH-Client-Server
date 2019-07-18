@@ -7,6 +7,6 @@ g++ -std=c++11 -o o.o kmeans2.cc
 
 for i in {1..1}
 do
-	./o.o datos.csv 3 8 10 centroides.csv #>> salida.csv
+	./o.o datos.csv 3 5 10 centroides.csv #>> salida.csv
 	#echo $k
 done
